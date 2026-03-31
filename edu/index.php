@@ -115,9 +115,13 @@ ui_page_header('Dashboard', date('l, F j, Y'), $actions);
 <!-- ── System alerts ── -->
 <?php if ($sys_alerts): ?>
 <div class="alerts">
-  <?php foreach ($sys_alerts as $sa): ?>
-  <div class="alert alert-<?= htmlspecialchars($sa['type']) ?>"
-       <?= $sa['dismissible'] ? '' : '' ?>>
+  <?php foreach ($sys_alerts as $sa):
+         $type = $sa['type'] ?? 'info';
+         [$ac, $ar, $at] = _alert_accent($type);
+         $avars = '--alert-accent:' . $ac . ';--alert-accent-rgb:' . $ar . ';--alert-text-on-solid:' . $at;
+  ?>
+  <div class="alert alert-<?= htmlspecialchars($type) ?>"
+       style="<?= $avars ?>"<?= $sa['dismissible'] ? ' data-auto-dismiss="8000"' : '' ?>>
     <span class="material-symbols-outlined"><?= htmlspecialchars($sa['icon']) ?></span>
     <span class="alert-text"><?= htmlspecialchars($sa['text']) ?></span>
     <?php if ($sa['dismissible']): ?>

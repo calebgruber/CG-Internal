@@ -5,12 +5,93 @@
  * Every page should call ui_head() / ui_sidebar() / ui_end().
  */
 
+/* ── Internal helpers ────────────────────────────── */
+
+/**
+ * Static store for current app context (heading + icon).
+ * ui_sidebar() writes; ui_page_header() reads.
+ */
+function _ui_context(?string $set_heading = null, ?string $set_icon = null): array {
+    static $heading = '', $icon = '';
+    if ($set_heading !== null) $heading = $set_heading;
+    if ($set_icon    !== null) $icon    = $set_icon;
+    return ['heading' => $heading, 'icon' => $icon];
+}
+
+/**
+ * Map a Material icon name → a hex accent color for cards.
+ */
+function _card_accent_color(string $icon): string {
+    static $map = [
+        // blue — identity / info
+        'apps'                 => '#3b82f6',
+        'person'               => '#3b82f6',
+        'manage_accounts'      => '#3b82f6',
+        'mail'                 => '#3b82f6',
+        'sticky_note_2'        => '#3b82f6',
+        // green — education / success / users
+        'school'               => '#10b981',
+        'check_circle'         => '#10b981',
+        'group'                => '#10b981',
+        // amber — actions / attention / notifications
+        'bolt'                 => '#f59e0b',
+        'add_alert'            => '#f59e0b',
+        'engineering'          => '#f59e0b',
+        'calendar_today'       => '#f59e0b',
+        'task_alt'             => '#f59e0b',
+        'pending'              => '#f59e0b',
+        // indigo — settings / data
+        'settings'             => '#6366f1',
+        'storage'              => '#6366f1',
+        'history'              => '#6366f1',
+        // violet — time / calendar
+        'calendar_month'       => '#8b5cf6',
+        'event_upcoming'       => '#8b5cf6',
+        // red — urgency / danger / assignments
+        'notifications_active' => '#ef4444',
+        'assignment'           => '#ef4444',
+        // slate — neutral lists
+        'list'                 => '#64748b',
+    ];
+    return $map[$icon] ?? '#3b82f6';
+}
+
+/**
+ * Convert a hex color to "R,G,B" string + pick white/black contrast text.
+ * Returns [rgb_string, '#ffffff' or '#000000'].
+ */
+function _hex_to_rgb_and_text(string $hex): array {
+    $hex = ltrim($hex, '#');
+    if (strlen($hex) === 3) {
+        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+    }
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+    // Perceived luminance (ITU-R BT.601)
+    $lum = (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+    return [$r . ',' . $g . ',' . $b, $lum > 0.55 ? '#000000' : '#ffffff'];
+}
+
+/**
+ * Return accent color info for a given alert type.
+ * Returns [hex_color, rgb_string, text_on_solid].
+ */
+function _alert_accent(string $type): array {
+    static $map = [
+        'info'    => ['#3b82f6', '59,130,246',  '#ffffff'],
+        'success' => ['#10b981', '16,185,129',  '#ffffff'],
+        'warning' => ['#f59e0b', '245,158,11',  '#000000'],
+        'danger'  => ['#ef4444', '239,68,68',   '#ffffff'],
+    ];
+    return $map[$type] ?? $map['info'];
+}
+
 /**
  * Render the full <head> and opening <body> / app shell.
  *
  * @param string $page_title   Title shown in <title> and page header
  * @param string $app_slug     Which app we're in (for sidebar active state)
- * @param array  $nav_items    Sidebar nav: [['icon'=>'','label'=>'','href'=>'','active'=>bool], …]
  * @param string $app_heading  H2 shown in sidebar header (defaults to app name)
  * @param string $header_icon  Material icon for the sidebar header logo
  */
@@ -20,7 +101,6 @@ function ui_head(
     string $app_heading = '',
     string $header_icon = 'home'
 ): void {
-    $theme = ''; // JS will apply from localStorage before paint
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,9 +115,12 @@ function ui_head(
     (function(){var t=localStorage.getItem('cg-theme')||
     (window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
     document.documentElement.setAttribute('data-theme',t);})();
+    /* Complete page loader when DOM is ready */
+    document.addEventListener('DOMContentLoaded',function(){var l=document.getElementById('page-loader');if(l)l.classList.add('pg-done');});
   </script>
 </head>
 <body>
+<div id="page-loader"></div>
 <div class="app">
 <?php
 }
@@ -51,6 +134,9 @@ function ui_sidebar(
     array  $nav_items,
     string $user_logout_url = ''
 ): void {
+    // Store context so ui_page_header() can show the app badge
+    _ui_context($app_heading, $header_icon);
+
     $user = current_user();
     $initials = strtoupper(mb_substr($user['display_name'] ?? $user['username'] ?? 'U', 0, 2, 'UTF-8'));
 ?>
@@ -108,9 +194,18 @@ function ui_sidebar(
  * @param string $extra_html  HTML to inject on the right side (action buttons etc.)
  */
 function ui_page_header(string $title, string $breadcrumb = '', string $extra_html = ''): void {
+    $ctx         = _ui_context();
+    $app_heading = $ctx['heading'];
+    $app_icon    = $ctx['icon'];
 ?>
     <div class="page-header">
       <div>
+        <?php if ($app_heading): ?>
+        <div class="app-context-badge">
+          <span class="material-symbols-outlined"><?= htmlspecialchars($app_icon) ?></span>
+          <?= htmlspecialchars($app_heading) ?>
+        </div>
+        <?php endif; ?>
         <h1><?= htmlspecialchars($title) ?></h1>
         <?php if ($breadcrumb): ?>
         <div class="breadcrumb"><?= htmlspecialchars($breadcrumb) ?></div>
@@ -134,12 +229,17 @@ function ui_flash(): void {
     if (empty($_SESSION['flash'])) return;
     echo '<div class="alerts">';
     foreach ($_SESSION['flash'] as $flash) {
-        $type    = htmlspecialchars($flash['type'] ?? 'info');
+        $type    = in_array($flash['type'] ?? '', ['info','success','warning','danger'])
+                   ? $flash['type'] : 'info';
         $message = htmlspecialchars($flash['message'] ?? '');
         $icons   = ['info' => 'info', 'success' => 'check_circle',
                     'warning' => 'warning', 'danger' => 'error'];
-        $icon    = $icons[$flash['type'] ?? 'info'] ?? 'info';
-        echo "<div class=\"alert alert-{$type}\" data-auto-dismiss=\"5000\">";
+        $icon    = $icons[$type] ?? 'info';
+        [$color, $rgb, $text_on] = _alert_accent($type);
+        $vars = 'style="--alert-accent:' . $color
+              . ';--alert-accent-rgb:' . $rgb
+              . ';--alert-text-on-solid:' . $text_on . '"';
+        echo "<div class=\"alert alert-{$type}\" {$vars} data-auto-dismiss=\"5000\">";
         echo "  <span class=\"material-symbols-outlined\">{$icon}</span>";
         echo "  <span class=\"alert-text\">{$message}</span>";
         echo "  <button class=\"alert-close\"><span class=\"material-symbols-outlined\">close</span></button>";
@@ -160,10 +260,15 @@ function flash(string $type, string $message): void {
  * Render an inline alert (not from session).
  */
 function ui_alert(string $type, string $message, bool $dismissible = false, string $icon = ''): void {
+    $type = in_array($type, ['info','success','warning','danger']) ? $type : 'info';
     $icons = ['info' => 'info', 'success' => 'check_circle',
               'warning' => 'warning', 'danger' => 'error'];
     $icon  = $icon ?: ($icons[$type] ?? 'info');
-    echo "<div class=\"alert alert-{$type}\">";
+    [$color, $rgb, $text_on] = _alert_accent($type);
+    $vars = 'style="--alert-accent:' . $color
+          . ';--alert-accent-rgb:' . $rgb
+          . ';--alert-text-on-solid:' . $text_on . '"';
+    echo "<div class=\"alert alert-{$type}\" {$vars}>";
     echo "  <span class=\"material-symbols-outlined\">" . htmlspecialchars($icon) . "</span>";
     echo "  <span class=\"alert-text\">" . htmlspecialchars($message) . "</span>";
     if ($dismissible) {
@@ -174,13 +279,28 @@ function ui_alert(string $type, string $message, bool $dismissible = false, stri
 
 /**
  * Open a card.
+ *
+ * @param string $icon              Material Symbol icon name
+ * @param string $title             Card title (shown in tab)
+ * @param string $extra_header_html HTML injected to the right of the tab (action buttons etc.)
+ * @param string $color             Hex accent color (auto-selected from icon map if empty)
  */
-function ui_card_open(string $icon, string $title, string $extra_header_html = ''): void {
-    echo '<div class="card">';
-    echo '  <div class="card-header">';
-    echo '    <span class="material-symbols-outlined">' . htmlspecialchars($icon) . '</span>';
-    echo '    <h3>' . htmlspecialchars($title) . '</h3>';
-    if ($extra_header_html) echo $extra_header_html;
+function ui_card_open(string $icon, string $title, string $extra_header_html = '', string $color = ''): void {
+    if ($color === '') $color = _card_accent_color($icon);
+    [$rgb, $text_on] = _hex_to_rgb_and_text($color);
+    $card_style = 'border-left:3px solid ' . $color
+                . ';--card-accent:' . $color
+                . ';--card-accent-rgb:' . $rgb
+                . ';--card-text-on-solid:' . $text_on;
+    echo '<div class="card" style="' . htmlspecialchars($card_style) . '">';
+    echo '  <div class="card-top">';
+    echo '    <div class="card-tab">';
+    echo '      <span class="material-symbols-outlined">' . htmlspecialchars($icon) . '</span>';
+    echo '      <h3>' . htmlspecialchars($title) . '</h3>';
+    echo '    </div>';
+    if ($extra_header_html) {
+        echo '    <div class="card-header-actions">' . $extra_header_html . '</div>';
+    }
     echo '  </div>';
     echo '  <div class="card-body">';
 }

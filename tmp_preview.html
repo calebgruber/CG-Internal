@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UI Preview</title>
+  <link rel="stylesheet" href="http://127.0.0.1:8099/shared/assets/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; }
+    .preview { padding: 2rem; background: var(--bg); min-height: 100vh; }
+    .preview h2 { color: var(--text); margin: 2rem 0 1rem; font-size: 1rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 1rem; }
+  </style>
+</head>
+<body>
+<div class="preview">
+  <h2>Cards (Light Mode)</h2>
+  <div class="card-grid">
+    <!-- Blue card -->
+    <div class="card" style="border-left:3px solid #3b82f6;--card-accent:#3b82f6;--card-accent-rgb:59,130,246;--card-text-on-solid:#ffffff">
+      <div class="card-top">
+        <div class="card-tab">
+          <span class="material-symbols-outlined">apps</span>
+          <h3>Applications</h3>
+        </div>
+        <div class="card-header-actions">
+          <button class="btn btn-sm">View All</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>This is a blue card with an app icon.</p>
+      </div>
+    </div>
+    <!-- Green card -->
+    <div class="card" style="border-left:3px solid #10b981;--card-accent:#10b981;--card-accent-rgb:16,185,129;--card-text-on-solid:#ffffff">
+      <div class="card-top">
+        <div class="card-tab">
+          <span class="material-symbols-outlined">school</span>
+          <h3>My Classes</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Green card for education section.</p>
+      </div>
+    </div>
+    <!-- Amber card -->
+    <div class="card" style="border-left:3px solid #f59e0b;--card-accent:#f59e0b;--card-accent-rgb:245,158,11;--card-text-on-solid:#000000">
+      <div class="card-top">
+        <div class="card-tab">
+          <span class="material-symbols-outlined">bolt</span>
+          <h3>Quick Actions</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Amber card — black text on light mode.</p>
+      </div>
+    </div>
+    <!-- Indigo card -->
+    <div class="card" style="border-left:3px solid #6366f1;--card-accent:#6366f1;--card-accent-rgb:99,102,241;--card-text-on-solid:#ffffff">
+      <div class="card-top">
+        <div class="card-tab">
+          <span class="material-symbols-outlined">settings</span>
+          <h3>General Settings — Longer Title</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Indigo card — tab scales with longer title text.</p>
+      </div>
+    </div>
+    <!-- Red card -->
+    <div class="card" style="border-left:3px solid #ef4444;--card-accent:#ef4444;--card-accent-rgb:239,68,68;--card-text-on-solid:#ffffff">
+      <div class="card-top">
+        <div class="card-tab">
+          <span class="material-symbols-outlined">notifications_active</span>
+          <h3>Active Alerts (3)</h3>
+        </div>
+      </div>
+      <div class="card-body"><p>Red card for alerts.</p></div>
+    </div>
+    <!-- Violet card -->
+    <div class="card" style="border-left:3px solid #8b5cf6;--card-accent:#8b5cf6;--card-accent-rgb:139,92,246;--card-text-on-solid:#ffffff">
+      <div class="card-top">
+        <div class="card-tab">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <h3>Weekly Schedule</h3>
+        </div>
+      </div>
+      <div class="card-body"><p>Violet card for calendar.</p></div>
+    </div>
+  </div>
+
+  <h2>Alerts (Light Mode)</h2>
+  <div class="alerts">
+    <div class="alert alert-info" style="--alert-accent:#3b82f6;--alert-accent-rgb:59,130,246;--alert-text-on-solid:#ffffff">
+      <span class="material-symbols-outlined">info</span>
+      <span class="alert-text">This is an informational alert message.</span>
+      <button class="alert-close"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="alert alert-success" style="--alert-accent:#10b981;--alert-accent-rgb:16,185,129;--alert-text-on-solid:#ffffff">
+      <span class="material-symbols-outlined">check_circle</span>
+      <span class="alert-text">Settings saved successfully.</span>
+    </div>
+    <div class="alert alert-warning" style="--alert-accent:#f59e0b;--alert-accent-rgb:245,158,11;--alert-text-on-solid:#000000">
+      <span class="material-symbols-outlined">warning</span>
+      <span class="alert-text">Maintenance mode is active — black text on amber background.</span>
+    </div>
+    <div class="alert alert-danger" style="--alert-accent:#ef4444;--alert-accent-rgb:239,68,68;--alert-text-on-solid:#ffffff">
+      <span class="material-symbols-outlined">error</span>
+      <span class="alert-text">Invalid username or password.</span>
+    </div>
+  </div>
+
+  <h2>Page Loader</h2>
+  <div id="page-loader" style="position:static;height:8px;border-radius:4px;width:60%;display:block;animation:none;box-shadow:none;"></div>
+</div>
+<script>
+  // Force Inter font fallback
+  document.querySelectorAll('.material-symbols-outlined').forEach(el => {
+    el.style.fontFamily = "'Material Symbols Outlined'";
+    el.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+  });
+</script>
+</body>
+</html>

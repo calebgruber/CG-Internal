@@ -216,8 +216,15 @@ function render_error_page(int $code, string $message): string {
 <meta charset="UTF-8">
 <title><?= $code . ' – ' . htmlspecialchars($title) ?> | <?= APP_NAME ?></title>
 <link rel="stylesheet" href="<?= $base ?>shared/assets/style.css">
+  <script>
+    (function(){var t=localStorage.getItem('cg-theme')||
+    (window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+    document.documentElement.setAttribute('data-theme',t);})();
+    document.addEventListener('DOMContentLoaded',function(){var l=document.getElementById('page-loader');if(l)l.classList.add('pg-done');});
+  </script>
 </head>
 <body>
+<div id="page-loader"></div>
 <div class="login-page">
   <div class="login-card">
     <div class="login-header">

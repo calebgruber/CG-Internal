@@ -48,13 +48,13 @@ ui_page_header('Maintenance Mode','System Admin → Maintenance');
 
 <div class="alerts">
   <?php if ($is_on): ?>
-  <div class="alert alert-warning">
+  <div class="alert alert-warning" style="--alert-accent:#f59e0b;--alert-accent-rgb:245,158,11;--alert-text-on-solid:#000000">
     <span class="material-symbols-outlined">engineering</span>
     <span class="alert-text"><strong>Maintenance mode is currently ON.</strong>
       All non-admin users see the maintenance page. You (as admin) can still browse normally.</span>
   </div>
   <?php else: ?>
-  <div class="alert alert-success">
+  <div class="alert alert-success" style="--alert-accent:#10b981;--alert-accent-rgb:16,185,129;--alert-text-on-solid:#ffffff">
     <span class="material-symbols-outlined">check_circle</span>
     <span class="alert-text">Site is <strong>online</strong>. All users have normal access.</span>
   </div>

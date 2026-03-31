@@ -16,6 +16,20 @@ require_once __DIR__ . '/../../shared/auth.php';
 $app_slug   = trim($_GET['app'] ?? '');
 $return_url = trim($_GET['return_url'] ?? '');
 
+// Attempt to read login background from settings
+$login_bg_css = '';
+try {
+    $lbg = db()->prepare("SELECT `value` FROM settings WHERE `key` = 'login_bg' LIMIT 1");
+    $lbg->execute();
+    $raw_bg = (string)($lbg->fetchColumn() ?: '');
+    // Allow only printable CSS color/gradient chars; exclude anything that could close a style tag
+    if ($raw_bg !== '' && preg_match('/^[\w\s#(),.\/%\-+:\']+$/', $raw_bg)) {
+        $login_bg_css = $raw_bg;
+    }
+} catch (Throwable $e) {
+    // DB unavailable or setting absent — leave background default
+}
+
 // If already logged in and has access → bounce straight back
 if (is_logged_in()) {
     $dest = valid_return_url($return_url) ?: APP_URL . '/id/admin/';
@@ -83,13 +97,18 @@ function valid_return_url(string $url): string {
   <meta name="robots" content="noindex,nofollow">
   <title>Sign In | <?= APP_NAME ?></title>
   <link rel="stylesheet" href="<?= APP_URL ?>/shared/assets/style.css">
+  <?php if ($login_bg_css): ?>
+  <style>:root { --login-page-bg: <?= $login_bg_css ?>; }</style>
+  <?php endif; ?>
   <script>
     (function(){var t=localStorage.getItem('cg-theme')||
     (window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
     document.documentElement.setAttribute('data-theme',t);})();
+    document.addEventListener('DOMContentLoaded',function(){var l=document.getElementById('page-loader');if(l)l.classList.add('pg-done');});
   </script>
 </head>
 <body>
+<div id="page-loader"></div>
 
 <div class="login-page">
   <div class="login-card">
@@ -103,7 +122,7 @@ function valid_return_url(string $url): string {
     <div class="login-body">
       <?php if ($error): ?>
       <div class="alerts">
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" style="--alert-accent:#ef4444;--alert-accent-rgb:239,68,68;--alert-text-on-solid:#ffffff">
           <span class="material-symbols-outlined">error</span>
           <span class="alert-text"><?= htmlspecialchars($error) ?></span>
         </div>

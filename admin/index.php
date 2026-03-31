@@ -58,7 +58,7 @@ ui_page_header('System Overview','Global Administration',$actions);
 
 <?php if ($maintenance): ?>
 <div class="alerts">
-  <div class="alert alert-warning">
+  <div class="alert alert-warning" style="--alert-accent:#f59e0b;--alert-accent-rgb:245,158,11;--alert-text-on-solid:#000000">
     <span class="material-symbols-outlined">engineering</span>
     <span class="alert-text"><strong>Maintenance mode is active.</strong> Non-admin users are shown a maintenance page.</span>
     <a href="<?=APP_URL?>/admin/maintenance.php" class="btn btn-sm btn-ghost" style="margin-left:auto">Disable</a>

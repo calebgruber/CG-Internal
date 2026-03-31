@@ -138,8 +138,41 @@
     });
   }
 
+  /* ── Page loader ──────────────────────────────── */
+  function initPageLoader() {
+    var loader = document.getElementById('page-loader');
+    if (!loader) return;
+
+    function startLoader() {
+      loader.classList.remove('pg-done');
+      loader.style.opacity  = '1';
+      loader.style.animation = 'none';
+      void loader.offsetWidth; // force reflow to restart animation
+      loader.style.animation = '';
+    }
+
+    // Intercept same-origin link clicks
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href]');
+      if (!link) return;
+      var href = link.getAttribute('href') || '';
+      if (link.target || e.ctrlKey || e.metaKey || e.shiftKey ||
+          href.charAt(0) === '#' || href.indexOf('javascript:') === 0 || href === '') return;
+      startLoader();
+    });
+
+    // Intercept form submits
+    document.addEventListener('submit', function (e) {
+      if (!e.defaultPrevented) startLoader();
+    });
+  }
+
   /* ── Bootstrap on DOMContentLoaded ───────────── */
   document.addEventListener('DOMContentLoaded', function () {
+    /* Complete the page loader */
+    var loader = document.getElementById('page-loader');
+    if (loader) loader.classList.add('pg-done');
+
     initTheme();
     initAlerts();
     initMobileMenu();
@@ -148,6 +181,7 @@
     initPasswordStrength();
     initColorPreview();
     initDynamicRows();
+    initPageLoader();
 
     /* Theme toggle button */
     const themeBtn = document.getElementById('theme-toggle');

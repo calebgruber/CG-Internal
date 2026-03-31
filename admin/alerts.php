@@ -109,9 +109,14 @@ ui_page_header('System Alerts','System Admin → Alerts');
   <?php ui_card_open('notifications_active','Active Alerts (' . count(array_filter($alerts, fn($a) => $a['is_active'])) . ')'); ?>
     <?php if ($alerts): ?>
     <div style="display:flex;flex-direction:column;gap:.75rem;">
-      <?php foreach ($alerts as $a): ?>
+      <?php foreach ($alerts as $a):
+            $type = $a['type'] ?? 'info';
+            [$ac, $ar, $at] = _alert_accent($type);
+            $avars = '--alert-accent:' . $ac . ';--alert-accent-rgb:' . $ar . ';--alert-text-on-solid:' . $at;
+      ?>
       <div>
-        <div class="alert alert-<?=htmlspecialchars($a['type'])?>" style="<?=!$a['is_active']?'opacity:.4':''?>">
+        <div class="alert alert-<?=htmlspecialchars($type)?>"
+             style="<?=$avars?>;<?=!$a['is_active']?'opacity:.4':''?>">
           <span class="material-symbols-outlined"><?=htmlspecialchars($a['icon'])?></span>
           <span class="alert-text"><?=htmlspecialchars($a['text'])?></span>
         </div>

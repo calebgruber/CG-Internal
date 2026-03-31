@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $keys = [
-        'site_name','mail_from','mail_from_name',
+        'site_name','login_bg','mail_from','mail_from_name',
         'smtp_host','smtp_port','smtp_user','smtp_secure',
         'twilio_sid','twilio_from',
         'notify_email','notify_phone','remind_days_before',
@@ -73,6 +73,13 @@ function sv(string $key, array $settings, string $default = ''): string {
     <div class="form-group">
       <label>Site Name</label>
       <input type="text" name="site_name" class="form-control" value="<?=sv('site_name',$s,'CG Internal')?>">
+    </div>
+    <div class="form-group">
+      <label>Login Page Background <span class="text-muted text-xs">(CSS value, e.g. <code>#1e3a5f</code> or <code>linear-gradient(135deg,#1e3a5f,#764ba2)</code>)</span></label>
+      <input type="text" name="login_bg" class="form-control"
+             placeholder="e.g. #0f172a or linear-gradient(135deg,#1e3a5f,#764ba2)"
+             value="<?=sv('login_bg',$s)?>">
+      <div class="form-hint">Leave blank to use the default page background.</div>
     </div>
     <div class="form-group">
       <label>Notification Email</label>
