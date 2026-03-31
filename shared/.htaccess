@@ -1,3 +1,1 @@
-# Deny all direct HTTP access to shared/ PHP helpers.
-Order deny,allow
-Deny from all
+
