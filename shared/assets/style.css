@@ -370,7 +370,7 @@ nav { padding: 0.5rem 0.5rem; flex: 1; }
 .card-top {
   display: flex;
   align-items: stretch;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 0px solid var(--border);
 }
 
 /* Tab: only as wide as icon + title; light = solid accent, dark = 25% accent */
@@ -382,6 +382,8 @@ nav { padding: 0.5rem 0.5rem; flex: 1; }
   flex-shrink: 0;
   /* Light mode: solid accent background */
   background: var(--card-accent, var(--primary));
+   border-top-right-radius: 100px;
+   border-bottom-right-radius: 100px;
 }
 
 [data-theme="dark"] .card-tab {
