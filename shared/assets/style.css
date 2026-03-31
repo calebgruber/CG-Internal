@@ -312,6 +312,8 @@ nav { padding: 0.5rem 0.5rem; flex: 1; }
   position: relative;
   /* Light mode text: white or black (per --alert-text-on-solid) */
   color: var(--alert-text-on-solid, #ffffff);
+   border-top-right-radius: 100px;
+   border-bottom-right-radius: 100px;
 }
 
 [data-theme="dark"] .alert {
