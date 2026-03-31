@@ -1,0 +1,38 @@
+# Root .htaccess
+# Requires mod_rewrite and mod_headers
+
+Options -Indexes -MultiViews
+ServerSignature Off
+
+# ── Security headers ────────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # Uncomment in production when TLS is confirmed:
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ── Block access to shared/ internals ───────────────────
+<FilesMatch "\.(sql|sh|env|log|json|lock|md|gitignore)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<DirectoryMatch "^(.*/)(shared|db)(/.*)?$">
+    Order allow,deny
+    Deny from all
+</DirectoryMatch>
+
+# ── Remove trailing .php (optional) ─────────────────────
+# Uncomment if you want /id/auth/login instead of /id/auth/login.php
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     RewriteCond %{REQUEST_FILENAME} !-d
+#     RewriteCond %{REQUEST_FILENAME}.php -f
+#     RewriteRule ^(.+?)/?$ /$1.php [L,QSA]
+# </IfModule>
+
+# ── Default index files ──────────────────────────────────
+DirectoryIndex index.php index.html
