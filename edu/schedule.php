@@ -66,7 +66,8 @@ $all_slots->execute([$uid]); $all_slots = $all_slots->fetchAll();
 $by_day = array_fill(0, 7, []);
 foreach ($all_slots as $s) $by_day[$s['day_of_week']][] = $s;
 
-$days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+$days      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+$days_full = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 $today = (int)date('w');
 
 $nav_items = [
@@ -111,7 +112,7 @@ ui_page_header($title,'EDU Hub → Schedule',$actions);
       <div class="form-group">
         <label for="day_of_week">Day *</label>
         <select id="day_of_week" name="day_of_week" class="form-control">
-          <?php foreach(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] as $i=>$d): ?>
+          <?php foreach($days_full as $i=>$d): ?>
           <option value="<?=$i?>" <?=($sl['day_of_week']??1)==$i?'selected':''?>><?=$d?></option>
           <?php endforeach; ?>
         </select>
@@ -200,7 +201,7 @@ ui_card_open('calendar_month','Weekly Schedule');
     <?php foreach($all_slots as $slot): ?>
     <tr>
       <td><span style="color:<?=htmlspecialchars($slot['color'])?>"><?=htmlspecialchars($slot['class_name'])?></span></td>
-      <td><?=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][$slot['day_of_week']]?></td>
+      <td><?= htmlspecialchars($days[$slot['day_of_week']]) ?></td>
       <td class="text-sm"><?=date('g:i A',strtotime($slot['start_time']))?> – <?=date('g:i A',strtotime($slot['end_time']))?></td>
       <td class="text-sm text-muted"><?=htmlspecialchars($slot['location']??'—')?></td>
       <td>

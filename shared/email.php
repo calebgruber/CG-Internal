@@ -141,7 +141,7 @@ function send_sms(string $to, string $message): bool {
 function send_due_notification(array $user, array $item, string $type = 'assignment'): bool {
     $label    = $type === 'assignment' ? 'Assignment' : 'Task';
     $title    = $item['title'] ?? 'Untitled';
-    $due      = isset($item['due_date']) ? date('D, M j \a\t g:i A', strtotime($item['due_date'])) : 'TBD';
+    $due      = isset($item['due_date']) ? date('D, M j', strtotime($item['due_date'])) . ' at ' . date('g:i A', strtotime($item['due_date'])) : 'TBD';
     $subject  = "[CG Internal] {$label} Due Reminder: {$title}";
 
     $html = "<h2>Upcoming {$label} Reminder</h2>

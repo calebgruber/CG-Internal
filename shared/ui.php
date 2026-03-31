@@ -52,7 +52,7 @@ function ui_sidebar(
     string $user_logout_url = ''
 ): void {
     $user = current_user();
-    $initials = strtoupper(substr($user['display_name'] ?? $user['username'] ?? 'U', 0, 2));
+    $initials = strtoupper(mb_substr($user['display_name'] ?? $user['username'] ?? 'U', 0, 2, 'UTF-8'));
 ?>
   <!-- Mobile overlay -->
   <div id="sidebar-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;"></div>
