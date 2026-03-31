@@ -13,67 +13,79 @@ $user = require_auth('edu');
 $uid  = (int)$user['id'];
 
 /* ── Stats ──────────────────────────────────────────── */
-$total_classes      = db()->prepare('SELECT COUNT(*) FROM edu_classes WHERE user_id=? AND is_active=1');
-$total_classes->execute([$uid]);
-$total_classes = (int)$total_classes->fetchColumn();
+try {
+    $total_classes_q = db()->prepare('SELECT COUNT(*) FROM edu_classes WHERE user_id=? AND is_active=1');
+    $total_classes_q->execute([$uid]);
+    $total_classes = (int)$total_classes_q->fetchColumn();
 
-$pending_assignments = db()->prepare(
-    "SELECT COUNT(*) FROM edu_assignments WHERE user_id=? AND status!='completed'"
-);
-$pending_assignments->execute([$uid]);
-$pending_assignments = (int)$pending_assignments->fetchColumn();
+    $pending_assignments_q = db()->prepare(
+        "SELECT COUNT(*) FROM edu_assignments WHERE user_id=? AND status!='completed'"
+    );
+    $pending_assignments_q->execute([$uid]);
+    $pending_assignments = (int)$pending_assignments_q->fetchColumn();
 
-$pending_tasks = db()->prepare(
-    "SELECT COUNT(*) FROM edu_tasks WHERE user_id=? AND status!='completed'"
-);
-$pending_tasks->execute([$uid]);
-$pending_tasks = (int)$pending_tasks->fetchColumn();
+    $pending_tasks_q = db()->prepare(
+        "SELECT COUNT(*) FROM edu_tasks WHERE user_id=? AND status!='completed'"
+    );
+    $pending_tasks_q->execute([$uid]);
+    $pending_tasks = (int)$pending_tasks_q->fetchColumn();
 
-$total_notes = db()->prepare('SELECT COUNT(*) FROM edu_notes WHERE user_id=?');
-$total_notes->execute([$uid]);
-$total_notes = (int)$total_notes->fetchColumn();
+    $total_notes_q = db()->prepare('SELECT COUNT(*) FROM edu_notes WHERE user_id=?');
+    $total_notes_q->execute([$uid]);
+    $total_notes = (int)$total_notes_q->fetchColumn();
 
-/* ── Upcoming (next 7 days) ─────────────────────────── */
-$upcoming = db()->prepare(
-    "SELECT a.id, a.title, a.due_date, a.priority, a.status, c.name AS class_name, c.color, 'assignment' AS type
-     FROM edu_assignments a
-     LEFT JOIN edu_classes c ON c.id = a.class_id
-     WHERE a.user_id=? AND a.status != 'completed' AND a.due_date IS NOT NULL
-       AND a.due_date <= DATE_ADD(NOW(), INTERVAL 7 DAY)
-     UNION ALL
-     SELECT t.id, t.title, t.due_date, t.priority, t.status, NULL, NULL, 'task' AS type
-     FROM edu_tasks t
-     WHERE t.user_id=? AND t.status != 'completed' AND t.due_date IS NOT NULL
-       AND t.due_date <= DATE_ADD(NOW(), INTERVAL 7 DAY)
-     ORDER BY due_date ASC LIMIT 10"
-);
-$upcoming->execute([$uid, $uid]);
-$upcoming = $upcoming->fetchAll();
+    /* ── Upcoming (next 7 days) ─────────────────────────── */
+    $upcoming_q = db()->prepare(
+        "SELECT a.id, a.title, a.due_date, a.priority, a.status, c.name AS class_name, c.color, 'assignment' AS type
+         FROM edu_assignments a
+         LEFT JOIN edu_classes c ON c.id = a.class_id
+         WHERE a.user_id=? AND a.status != 'completed' AND a.due_date IS NOT NULL
+           AND a.due_date <= DATE_ADD(NOW(), INTERVAL 7 DAY)
+         UNION ALL
+         SELECT t.id, t.title, t.due_date, t.priority, t.status, NULL, NULL, 'task' AS type
+         FROM edu_tasks t
+         WHERE t.user_id=? AND t.status != 'completed' AND t.due_date IS NOT NULL
+           AND t.due_date <= DATE_ADD(NOW(), INTERVAL 7 DAY)
+         ORDER BY due_date ASC LIMIT 10"
+    );
+    $upcoming_q->execute([$uid, $uid]);
+    $upcoming = $upcoming_q->fetchAll();
 
-/* ── Today's schedule ───────────────────────────────── */
-$today_dow = (int)date('w');  // 0=Sun
-$schedule = db()->prepare(
-    'SELECT s.start_time, s.end_time, s.location, c.name AS class_name, c.color
-     FROM edu_schedule s JOIN edu_classes c ON c.id = s.class_id
-     WHERE s.user_id=? AND s.day_of_week=?
-     ORDER BY s.start_time'
-);
-$schedule->execute([$uid, $today_dow]);
-$schedule = $schedule->fetchAll();
+    /* ── Today's schedule ───────────────────────────────── */
+    $today_dow = (int)date('w');  // 0=Sun
+    $schedule_q = db()->prepare(
+        'SELECT s.start_time, s.end_time, s.location, c.name AS class_name, c.color
+         FROM edu_schedule s JOIN edu_classes c ON c.id = s.class_id
+         WHERE s.user_id=? AND s.day_of_week=?
+         ORDER BY s.start_time'
+    );
+    $schedule_q->execute([$uid, $today_dow]);
+    $schedule = $schedule_q->fetchAll();
 
-/* ── Recent notes ─────────────────────────────────────*/
-$recent_notes = db()->prepare(
-    'SELECT n.id, n.title, n.updated_at, c.name AS class_name, c.color
-     FROM edu_notes n LEFT JOIN edu_classes c ON c.id = n.class_id
-     WHERE n.user_id=? ORDER BY n.updated_at DESC LIMIT 5'
-);
-$recent_notes->execute([$uid]);
-$recent_notes = $recent_notes->fetchAll();
+    /* ── Recent notes ─────────────────────────────────────*/
+    $recent_notes_q = db()->prepare(
+        'SELECT n.id, n.title, n.updated_at, c.name AS class_name, c.color
+         FROM edu_notes n LEFT JOIN edu_classes c ON c.id = n.class_id
+         WHERE n.user_id=? ORDER BY n.updated_at DESC LIMIT 5'
+    );
+    $recent_notes_q->execute([$uid]);
+    $recent_notes = $recent_notes_q->fetchAll();
 
-/* ── System alerts for this app ──────────────────────── */
-$sys_alerts = db()->query(
-    "SELECT * FROM system_alerts WHERE is_active=1 ORDER BY created_at DESC LIMIT 5"
-)->fetchAll();
+    /* ── System alerts for this app ──────────────────────── */
+    $sys_alerts = db()->query(
+        "SELECT text, type, icon, dismissible FROM system_alerts WHERE is_active=1 ORDER BY created_at DESC LIMIT 5"
+    )->fetchAll();
+} catch (PDOException $e) {
+    $total_classes      = 0;
+    $pending_assignments = 0;
+    $pending_tasks      = 0;
+    $total_notes        = 0;
+    $upcoming           = [];
+    $today_dow          = (int)date('w');
+    $schedule           = [];
+    $recent_notes       = [];
+    $sys_alerts         = [];
+}
 
 $nav_items = [
     ['icon' => 'dashboard',    'label' => 'Dashboard',   'href' => APP_URL . '/edu/',                 'active' => true],

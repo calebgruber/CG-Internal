@@ -100,13 +100,17 @@ function user_has_app_access(string $app_slug): bool {
     if (!$user) return false;
     if (($user['role'] ?? '') === 'admin') return true;   // admins have access to everything
 
-    $stmt = db()->prepare(
-        'SELECT 1 FROM user_app_access uaa
-         JOIN apps a ON a.id = uaa.app_id
-         WHERE uaa.user_id = ? AND a.slug = ? AND a.is_active = 1'
-    );
-    $stmt->execute([$user['id'], $app_slug]);
-    return (bool) $stmt->fetchColumn();
+    try {
+        $stmt = db()->prepare(
+            'SELECT 1 FROM user_app_access uaa
+             JOIN apps a ON a.id = uaa.app_id
+             WHERE uaa.user_id = ? AND a.slug = ? AND a.is_active = 1'
+        );
+        $stmt->execute([$user['id'], $app_slug]);
+        return (bool) $stmt->fetchColumn();
+    } catch (PDOException $e) {
+        return false;
+    }
 }
 
 function redirect_to_login(string $app_slug = ''): never {

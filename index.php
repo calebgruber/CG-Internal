@@ -18,22 +18,27 @@ $user = current_user();
 $uid  = (int)$user['id'];
 
 // Load apps this user can access
-if ($user['role'] === 'admin') {
-    $apps = db()->query('SELECT * FROM apps WHERE is_active=1 ORDER BY sort_order, name')->fetchAll();
-} else {
-    $stmt = db()->prepare(
-        'SELECT a.* FROM apps a
-         JOIN user_app_access uaa ON uaa.app_id = a.id
-         WHERE uaa.user_id = ? AND a.is_active = 1
-         ORDER BY a.sort_order, a.name'
-    );
-    $stmt->execute([$uid]);
-    $apps = $stmt->fetchAll();
-}
+try {
+    if ($user['role'] === 'admin') {
+        $apps = db()->query('SELECT * FROM apps WHERE is_active=1 ORDER BY sort_order, name')->fetchAll();
+    } else {
+        $stmt = db()->prepare(
+            'SELECT a.* FROM apps a
+             JOIN user_app_access uaa ON uaa.app_id = a.id
+             WHERE uaa.user_id = ? AND a.is_active = 1
+             ORDER BY a.sort_order, a.name'
+        );
+        $stmt->execute([$uid]);
+        $apps = $stmt->fetchAll();
+    }
 
-$sys_alerts = db()->query(
-    "SELECT * FROM system_alerts WHERE is_active=1 ORDER BY created_at DESC LIMIT 3"
-)->fetchAll();
+    $sys_alerts = db()->query(
+        "SELECT text, type, icon, dismissible FROM system_alerts WHERE is_active=1 ORDER BY created_at DESC LIMIT 3"
+    )->fetchAll();
+} catch (PDOException $e) {
+    $apps       = [];
+    $sys_alerts = [];
+}
 
 $nav_items = [
     ['icon'=>'home',     'label'=>'Launcher', 'href'=>APP_URL.'/', 'active'=>true],

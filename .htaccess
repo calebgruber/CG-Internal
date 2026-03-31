@@ -14,16 +14,18 @@ ServerSignature Off
     # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
-# ── Block access to shared/ internals ───────────────────
+# ── Block access to sensitive files and directories ─────
 <FilesMatch "\.(sql|sh|env|log|json|lock|md|gitignore)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-<DirectoryMatch "^(.*/)(shared|db)(/.*)?$">
-    Order allow,deny
-    Deny from all
-</DirectoryMatch>
+# Block direct HTTP access to shared/ and db/ subdirectories.
+# <DirectoryMatch> is NOT valid in .htaccess; use RewriteRule instead.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(shared|db)(/|$) - [F,L]
+</IfModule>
 
 # ── Remove trailing .php (optional) ─────────────────────
 # Uncomment if you want /id/auth/login instead of /id/auth/login.php
