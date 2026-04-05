@@ -27,7 +27,6 @@ $nav_items = [
     ['icon' => 'apps',            'label' => 'Applications', 'href' => APP_URL . '/id/admin/apps.php'],
     ['section' => 'System'],
     ['icon' => 'admin_panel_settings', 'label' => 'Global Admin', 'href' => APP_URL . '/admin/'],
-    ['icon' => 'home',            'label' => 'Back to Apps', 'href' => APP_URL . '/'],
 ];
 
 $actions = '<a href="' . APP_URL . '/id/admin/users.php?action=new" class="btn btn-primary btn-sm">

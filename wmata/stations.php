@@ -28,8 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = in_array($_POST['bulk_status'] ?? '', ['incomplete','in_progress','complete'])
                   ? $_POST['bulk_status'] : 'incomplete';
         if ($ids) {
-            $in = implode(',', $ids);
-            db()->exec("UPDATE wmata_stations SET status='{$status}' WHERE id IN ({$in})");
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt_bulk = db()->prepare("UPDATE wmata_stations SET status=? WHERE id IN ({$placeholders})");
+            $stmt_bulk->execute(array_merge([$status], array_values($ids)));
             flash('success', count($ids) . ' station(s) updated to ' . str_replace('_',' ',$status) . '.');
         }
     }
@@ -83,12 +84,15 @@ $stations = $stmt->fetchAll();
 /* ── Line badges per station ────────────────────── */
 $station_lines = [];
 if ($stations) {
-    $sids = implode(',', array_column($stations, 'id'));
-    $sl_rows = db()->query(
+    $sids = array_column($stations, 'id');
+    $placeholders = implode(',', array_fill(0, count($sids), '?'));
+    $sl_stmt = db()->prepare(
         "SELECT sl.station_id, l.abbreviation, l.color
          FROM wmata_station_lines sl JOIN wmata_lines l ON l.id = sl.line_id
-         WHERE sl.station_id IN ({$sids}) ORDER BY l.sort_order"
-    )->fetchAll();
+         WHERE sl.station_id IN ({$placeholders}) ORDER BY l.sort_order"
+    );
+    $sl_stmt->execute($sids);
+    $sl_rows = $sl_stmt->fetchAll();
     foreach ($sl_rows as $r) {
         $station_lines[$r['station_id']][] = $r;
     }

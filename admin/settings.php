@@ -15,7 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $keys = [
-        'site_name','login_bg','mail_from','mail_from_name',
+        'site_name','login_banner','login_banner_text','login_banner_subtext',
+        'mail_from','mail_from_name',
         'smtp_host','smtp_port','smtp_user','smtp_secure',
         'twilio_sid','twilio_from',
         'notify_email','notify_phone','remind_days_before',
@@ -75,11 +76,23 @@ function sv(string $key, array $settings, string $default = ''): string {
       <input type="text" name="site_name" class="form-control" value="<?=sv('site_name',$s,'CG Internal')?>">
     </div>
     <div class="form-group">
-      <label>Login Page Background <span class="text-muted text-xs">(CSS value, e.g. <code>#1e3a5f</code> or <code>linear-gradient(135deg,#1e3a5f,#764ba2)</code>)</span></label>
-      <input type="text" name="login_bg" class="form-control"
-             placeholder="e.g. #0f172a or linear-gradient(135deg,#1e3a5f,#764ba2)"
-             value="<?=sv('login_bg',$s)?>">
-      <div class="form-hint">Leave blank to use the default page background.</div>
+      <label>Login Page Banner <span class="text-muted text-xs">(image URL <em>or</em> CSS gradient)</span></label>
+      <input type="text" name="login_banner" class="form-control"
+             placeholder="https://…/image.jpg  or  linear-gradient(135deg,#0f172a,#1e40af)"
+             value="<?=sv('login_banner',$s)?>">
+      <div class="form-hint">Image URL fills the left panel. CSS gradient/color is used as the background.</div>
+    </div>
+    <div class="form-group">
+      <label>Login Banner Heading</label>
+      <input type="text" name="login_banner_text" class="form-control"
+             placeholder="<?= htmlspecialchars(APP_NAME) ?>"
+             value="<?=sv('login_banner_text',$s)?>">
+    </div>
+    <div class="form-group">
+      <label>Login Banner Subtext</label>
+      <input type="text" name="login_banner_subtext" class="form-control"
+             placeholder="Internal management platform"
+             value="<?=sv('login_banner_subtext',$s)?>">
     </div>
     <div class="form-group">
       <label>Notification Email</label>

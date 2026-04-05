@@ -35,7 +35,6 @@ $nav_items = [
     ['section'=>'Sub-systems'],
     ['icon'=>'manage_accounts',    'label'=>'ID Admin',    'href'=>APP_URL.'/id/admin/'],
     ['icon'=>'school',             'label'=>'EDU Hub',     'href'=>APP_URL.'/edu/'],
-    ['icon'=>'apps',               'label'=>'App Launcher','href'=>APP_URL.'/'],
 ];
 
 ui_head('System Admin','admin','System Admin','admin_panel_settings');

@@ -94,8 +94,6 @@ $nav_items = [
     ['icon' => 'task_alt',     'label' => 'Tasks',       'href' => APP_URL . '/edu/tasks.php'],
     ['icon' => 'sticky_note_2','label' => 'Notes',       'href' => APP_URL . '/edu/notes.php'],
     ['icon' => 'calendar_month','label' => 'Schedule',   'href' => APP_URL . '/edu/schedule.php'],
-    ['section' => 'Account'],
-    ['icon' => 'apps',         'label' => 'All Apps',    'href' => APP_URL . '/'],
 ];
 
 $actions = '
