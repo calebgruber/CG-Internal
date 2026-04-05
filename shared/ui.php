@@ -157,15 +157,17 @@ function ui_sidebar(
     <button id="mobile-menu-btn" class="topbar-btn mobile-menu-btn" title="Open menu" aria-label="Toggle navigation">
       <span class="material-symbols-outlined">menu</span>
     </button>
-    <a href="<?= APP_URL ?>/" class="topbar-launcher">
-      <span class="material-symbols-outlined">home</span>
-      Launcher
-    </a>
-    <span class="topbar-sep">›</span>
-    <span class="topbar-app">
-      <span class="material-symbols-outlined"><?= htmlspecialchars($header_icon) ?></span>
-      <?= htmlspecialchars($app_heading) ?>
-    </span>
+    <div class="topbar-left">
+      <a href="<?= APP_URL ?>/" class="topbar-launcher">
+        <span class="material-symbols-outlined">home</span>
+        Launcher
+      </a>
+      <span class="topbar-sep">›</span>
+      <span class="topbar-app">
+        <span class="material-symbols-outlined"><?= htmlspecialchars($header_icon) ?></span>
+        <?= htmlspecialchars($app_heading) ?>
+      </span>
+    </div>
 
     <div class="topbar-right">
       <button id="theme-toggle" class="topbar-btn" title="Toggle theme">
