@@ -182,10 +182,10 @@ ui_page_header(htmlspecialchars($station['name']), 'WMATA Tracker › Stations �
   <?php endforeach; ?>
   <?php
     // Generate auto links from lat/lng if stored URLs are empty
-    $lat = $station['lat'] ?? null;
-    $lng = $station['lng'] ?? null;
-    $maps_link  = $station['google_maps_url']  ?: ($lat && $lng ? "https://www.google.com/maps?q={$lat},{$lng}" : '');
-    $earth_link = $station['google_earth_url'] ?: ($lat && $lng ? "https://earth.google.com/web/@{$lat},{$lng},0a,500d" : '');
+    $lat = isset($station['lat']) && is_numeric($station['lat']) ? (float)$station['lat'] : null;
+    $lng = isset($station['lng']) && is_numeric($station['lng']) ? (float)$station['lng'] : null;
+    $maps_link  = $station['google_maps_url']  ?: ($lat !== null && $lng !== null ? "https://www.google.com/maps?q={$lat},{$lng}" : '');
+    $earth_link = $station['google_earth_url'] ?: ($lat !== null && $lng !== null ? "https://earth.google.com/web/@{$lat},{$lng},0a,500d" : '');
     $wmata_link = "https://www.wmata.com/rail/station/?station=" . rawurlencode($station['name']);
   ?>
   <?php if ($maps_link): ?>
@@ -207,9 +207,9 @@ ui_page_header(htmlspecialchars($station['name']), 'WMATA Tracker › Stations �
 
 <!-- ── Google Maps embed ── -->
 <?php
-$embed_lat = $station['lat'] ?? null;
-$embed_lng = $station['lng'] ?? null;
-if ($embed_lat && $embed_lng):
+$embed_lat = isset($station['lat']) && is_numeric($station['lat']) ? (float)$station['lat'] : null;
+$embed_lng = isset($station['lng']) && is_numeric($station['lng']) ? (float)$station['lng'] : null;
+if ($embed_lat !== null && $embed_lng !== null):
     $embed_url = 'https://maps.google.com/maps?q=' . urlencode($station['name'] . ' Metro Station') . '&output=embed&ll=' . $embed_lat . ',' . $embed_lng . '&z=16';
 ?>
 <div class="card card-full" style="border-left:3px solid #003DA5;--card-accent:#003DA5;--card-accent-rgb:0,61,165;--card-text-on-solid:#ffffff">

@@ -265,7 +265,12 @@ ui_page_header('Minecraft Mods', 'WMATA Tracker › Mods');
         </button>
       </form>
       <button type="button" class="btn btn-ghost btn-sm" title="Edit"
-              onclick="openModEdit(<?= (int)$mod['id'] ?>, <?= htmlspecialchars(json_encode($mod['mod_version'])) ?>, <?= htmlspecialchars(json_encode($mod['mc_version'])) ?>, <?= htmlspecialchars(json_encode($mod['download_url'])) ?>, <?= htmlspecialchars(json_encode($mod['notes'] ?? '')) ?>)">
+              data-mod-id="<?= (int)$mod['id'] ?>"
+              data-mod-version="<?= htmlspecialchars($mod['mod_version']) ?>"
+              data-mc-version="<?= htmlspecialchars($mod['mc_version']) ?>"
+              data-dl-url="<?= htmlspecialchars($mod['download_url']) ?>"
+              data-notes="<?= htmlspecialchars($mod['notes'] ?? '') ?>"
+              onclick="openModEdit(this)">
         <span class="material-symbols-outlined">edit</span>
       </button>
       <form method="POST" style="display:inline">
@@ -273,7 +278,7 @@ ui_page_header('Minecraft Mods', 'WMATA Tracker › Mods');
         <input type="hidden" name="action" value="delete_mod">
         <input type="hidden" name="mod_id" value="<?= (int)$mod['id'] ?>">
         <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger)"
-                data-confirm="Delete mod &quot;<?= htmlspecialchars(addslashes($mod['name'])) ?>&quot;?">
+                data-confirm="Delete mod &quot;<?= htmlspecialchars($mod['name']) ?>&quot;?">
           <span class="material-symbols-outlined">delete</span>
         </button>
       </form>
@@ -327,12 +332,12 @@ ui_page_header('Minecraft Mods', 'WMATA Tracker › Mods');
 </div>
 
 <script>
-function openModEdit(id, modVer, mcVer, dlUrl, notes) {
-    document.getElementById('edit-mod-id').value = id;
-    document.getElementById('edit-mod-version').value = modVer;
-    document.getElementById('edit-mc-version').value = mcVer;
-    document.getElementById('edit-dl-url').value = dlUrl;
-    document.getElementById('edit-notes').value = notes;
+function openModEdit(btn) {
+    document.getElementById('edit-mod-id').value     = btn.dataset.modId;
+    document.getElementById('edit-mod-version').value = btn.dataset.modVersion;
+    document.getElementById('edit-mc-version').value  = btn.dataset.mcVersion;
+    document.getElementById('edit-dl-url').value      = btn.dataset.dlUrl;
+    document.getElementById('edit-notes').value       = btn.dataset.notes;
     document.getElementById('edit-modal').style.display = 'flex';
 }
 function closeModEdit() {
