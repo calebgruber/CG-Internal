@@ -28,17 +28,17 @@ $maintenance = setting('maintenance_mode','0') === '1';
 
 $nav_items = [
     ['icon'=>'dashboard',          'label'=>'Overview',    'href'=>APP_URL.'/admin/',                   'active'=>true],
-    ['icon'=>'settings',           'label'=>'Settings',    'href'=>APP_URL.'/admin/settings.php'],
-    ['icon'=>'storage',            'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations.php'],
-    ['icon'=>'engineering',        'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance.php'],
-    ['icon'=>'add_alert',          'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts.php'],
+    ['icon'=>'settings',           'label'=>'Settings',    'href'=>APP_URL.'/admin/settings'],
+    ['icon'=>'storage',            'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations'],
+    ['icon'=>'engineering',        'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance'],
+    ['icon'=>'add_alert',          'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts'],
     ['section'=>'Sub-systems'],
     ['icon'=>'manage_accounts',    'label'=>'ID Admin',    'href'=>APP_URL.'/id/admin/'],
     ['icon'=>'school',             'label'=>'EDU Hub',     'href'=>APP_URL.'/edu/'],
 ];
 
 ui_head('System Admin','admin','System Admin','admin_panel_settings');
-ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout');
 
 $actions = $maintenance ?
     '<span class="badge badge-danger" style="font-size:.875rem;padding:.375rem .75rem">
@@ -60,7 +60,7 @@ ui_page_header('System Overview','Global Administration',$actions);
   <div class="alert alert-warning" style="--alert-accent:#f59e0b;--alert-accent-rgb:245,158,11;--alert-text-on-solid:#000000">
     <span class="material-symbols-outlined">engineering</span>
     <span class="alert-text"><strong>Maintenance mode is active.</strong> Non-admin users are shown a maintenance page.</span>
-    <a href="<?=APP_URL?>/admin/maintenance.php" class="btn btn-sm btn-ghost" style="margin-left:auto">Disable</a>
+    <a href="<?=APP_URL?>/admin/maintenance" class="btn btn-sm btn-ghost" style="margin-left:auto">Disable</a>
   </div>
 </div>
 <?php endif; ?>
@@ -71,7 +71,7 @@ ui_page_header('System Overview','Global Administration',$actions);
     <div class="stat-icon"><span class="material-symbols-outlined">group</span></div>
     <div class="stat-label">Users</div>
     <div class="stat-value"><?=$stats['users']?></div>
-    <div class="stat-sub"><a href="<?=APP_URL?>/id/admin/users.php">Manage</a></div>
+    <div class="stat-sub"><a href="<?=APP_URL?>/id/admin/users">Manage</a></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon" style="background:rgba(16,185,129,.12);color:var(--success)">
@@ -79,7 +79,7 @@ ui_page_header('System Overview','Global Administration',$actions);
     </div>
     <div class="stat-label">Active Apps</div>
     <div class="stat-value"><?=$stats['active_apps']?></div>
-    <div class="stat-sub"><a href="<?=APP_URL?>/id/admin/apps.php">Configure</a></div>
+    <div class="stat-sub"><a href="<?=APP_URL?>/id/admin/apps">Configure</a></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon" style="background:rgba(239,68,68,.12);color:var(--danger)">
@@ -94,34 +94,34 @@ ui_page_header('System Overview','Global Administration',$actions);
     </div>
     <div class="stat-label">DB Migrations</div>
     <div class="stat-value"><?=$stats['migrations']?></div>
-    <div class="stat-sub"><a href="<?=APP_URL?>/admin/migrations.php">Run</a></div>
+    <div class="stat-sub"><a href="<?=APP_URL?>/admin/migrations">Run</a></div>
   </div>
 </div>
 
 <!-- Quick actions -->
 <?php ui_card_open('bolt','Quick Actions'); ?>
   <div class="apps-grid">
-    <a href="<?=APP_URL?>/admin/settings.php" class="app-tile">
+    <a href="<?=APP_URL?>/admin/settings" class="app-tile">
       <span class="material-symbols-outlined">settings</span>
       <span class="app-tile-name">Settings</span>
     </a>
-    <a href="<?=APP_URL?>/admin/migrations.php" class="app-tile">
+    <a href="<?=APP_URL?>/admin/migrations" class="app-tile">
       <span class="material-symbols-outlined">storage</span>
       <span class="app-tile-name">DB Migrations</span>
     </a>
-    <a href="<?=APP_URL?>/admin/maintenance.php" class="app-tile">
+    <a href="<?=APP_URL?>/admin/maintenance" class="app-tile">
       <span class="material-symbols-outlined">engineering</span>
       <span class="app-tile-name">Maintenance</span>
     </a>
-    <a href="<?=APP_URL?>/admin/alerts.php" class="app-tile">
+    <a href="<?=APP_URL?>/admin/alerts" class="app-tile">
       <span class="material-symbols-outlined">add_alert</span>
       <span class="app-tile-name">Manage Alerts</span>
     </a>
-    <a href="<?=APP_URL?>/id/admin/users.php" class="app-tile">
+    <a href="<?=APP_URL?>/id/admin/users" class="app-tile">
       <span class="material-symbols-outlined">group</span>
       <span class="app-tile-name">Users</span>
     </a>
-    <a href="<?=APP_URL?>/id/admin/apps.php" class="app-tile">
+    <a href="<?=APP_URL?>/id/admin/apps" class="app-tile">
       <span class="material-symbols-outlined">apps</span>
       <span class="app-tile-name">Apps</span>
     </a>

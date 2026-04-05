@@ -35,11 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ext  = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
             if (!in_array($ext, $allowed_ext)) {
                 flash('danger', 'Diagram must be an image (jpg, png, gif, webp).');
-                header('Location: ' . APP_URL . '/wmata/rolling-stock.php'); exit;
+                header('Location: ' . APP_URL . '/wmata/rolling-stock'); exit;
             }
             if ($file['size'] > $max_size) {
                 flash('danger', 'Diagram file too large (max 50 MB).');
-                header('Location: ' . APP_URL . '/wmata/rolling-stock.php'); exit;
+                header('Location: ' . APP_URL . '/wmata/rolling-stock'); exit;
             }
             $diag_fname = uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $orig);
             if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ->execute([$status, $cb, $gb, $notes ?: null, $cid]);
         }
         flash('success', 'Car updated.');
-        header('Location: ' . APP_URL . '/wmata/rolling-stock.php#car-' . $cid); exit;
+        header('Location: ' . APP_URL . '/wmata/rolling-stock#car-' . $cid); exit;
     }
 
     if ($pa === 'toggle_progress') {
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   ? $_POST['status'] : 'incomplete';
         db()->prepare('UPDATE wmata_rolling_stock_progress SET status=? WHERE id=?')->execute([$status, $pid]);
         $cid = (int)($_POST['car_id'] ?? 0);
-        header('Location: ' . APP_URL . '/wmata/rolling-stock.php#car-' . $cid); exit;
+        header('Location: ' . APP_URL . '/wmata/rolling-stock#car-' . $cid); exit;
     }
 
     if ($pa === 'add_progress') {
@@ -82,14 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             db()->prepare('INSERT INTO wmata_rolling_stock_progress (rolling_stock_id, point_name, sort_order) VALUES (?,?,?)')
                 ->execute([$cid, $name, $next]);
         }
-        header('Location: ' . APP_URL . '/wmata/rolling-stock.php#car-' . $cid); exit;
+        header('Location: ' . APP_URL . '/wmata/rolling-stock#car-' . $cid); exit;
     }
 
     if ($pa === 'delete_progress') {
         $pid = (int)($_POST['progress_id'] ?? 0);
         $cid = (int)($_POST['car_id'] ?? 0);
         db()->prepare('DELETE FROM wmata_rolling_stock_progress WHERE id=?')->execute([$pid]);
-        header('Location: ' . APP_URL . '/wmata/rolling-stock.php#car-' . $cid); exit;
+        header('Location: ' . APP_URL . '/wmata/rolling-stock#car-' . $cid); exit;
     }
 
     if ($pa === 'add_car') {
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ->execute([$series, $cn, $next]);
             flash('success', "Car #{$cn} added.");
         }
-        header('Location: ' . APP_URL . '/wmata/rolling-stock.php'); exit;
+        header('Location: ' . APP_URL . '/wmata/rolling-stock'); exit;
     }
 
     if ($pa === 'delete_car') {
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($old) @unlink($upload_dir . $old);
         db()->prepare('DELETE FROM wmata_rolling_stock WHERE id=?')->execute([$cid]);
         flash('success', 'Car deleted.');
-        header('Location: ' . APP_URL . '/wmata/rolling-stock.php'); exit;
+        header('Location: ' . APP_URL . '/wmata/rolling-stock'); exit;
     }
 }
 
@@ -146,10 +146,10 @@ $active_tab = in_array($_GET['tab'] ?? '', ['6000','7000']) ? $_GET['tab'] : '70
 
 $nav_items = [
     ['icon' => 'dashboard',         'label' => 'Dashboard',     'href' => APP_URL . '/wmata/'],
-    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations.php'],
-    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock.php', 'active' => true],
-    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator.php'],
-    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files.php'],
+    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations'],
+    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock', 'active' => true],
+    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
+    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
 ];
 
 ui_head('Rolling Stock – WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');

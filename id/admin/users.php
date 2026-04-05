@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $uid = (int) db()->lastInsertId();
                         sync_app_access($uid, $app_ids);
                         flash('success', "User @{$username} created.");
-                        header('Location: ' . APP_URL . '/id/admin/users.php');
+                        header('Location: ' . APP_URL . '/id/admin/users');
                         exit;
                     }
                 } else {
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     sync_app_access($uid, $app_ids);
                     flash('success', "User @{$username} updated.");
-                    header('Location: ' . APP_URL . '/id/admin/users.php');
+                    header('Location: ' . APP_URL . '/id/admin/users');
                     exit;
                 }
             } catch (PDOException $e) {
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             db()->prepare('DELETE FROM users WHERE id=?')->execute([$uid]);
             flash('success', 'User deleted.');
         }
-        header('Location: ' . APP_URL . '/id/admin/users.php');
+        header('Location: ' . APP_URL . '/id/admin/users');
         exit;
     }
 
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = (int)($_POST['user_id'] ?? 0);
         db()->prepare('UPDATE users SET is_active = NOT is_active WHERE id=?')->execute([$uid]);
         flash('success', 'User status toggled.');
-        header('Location: ' . APP_URL . '/id/admin/users.php');
+        header('Location: ' . APP_URL . '/id/admin/users');
         exit;
     }
 }
@@ -137,8 +137,8 @@ $all_users = db()->query(
 /* ── Nav ─────────────────────────────────────────────── */
 $nav_items = [
     ['icon' => 'dashboard', 'label' => 'Dashboard',    'href' => APP_URL . '/id/admin/'],
-    ['icon' => 'group',     'label' => 'Users',        'href' => APP_URL . '/id/admin/users.php', 'active' => true],
-    ['icon' => 'apps',      'label' => 'Applications', 'href' => APP_URL . '/id/admin/apps.php'],
+    ['icon' => 'group',     'label' => 'Users',        'href' => APP_URL . '/id/admin/users', 'active' => true],
+    ['icon' => 'apps',      'label' => 'Applications', 'href' => APP_URL . '/id/admin/apps'],
     ['section' => 'System'],
     ['icon' => 'admin_panel_settings', 'label' => 'Global Admin', 'href' => APP_URL . '/admin/'],
 ];
@@ -152,7 +152,7 @@ $actions = ($action === 'list') ?
      </a>' : '';
 
 ui_head($title, 'id', 'ID Admin', 'manage_accounts');
-ui_sidebar('ID Admin', 'manage_accounts', $nav_items, APP_URL . '/id/auth/logout.php');
+ui_sidebar('ID Admin', 'manage_accounts', $nav_items, APP_URL . '/id/auth/logout');
 ui_page_header($title, $breadcrumb, $actions);
 ?>
 
@@ -248,7 +248,7 @@ ui_card_open('person', $action === 'new' ? 'Create User' : 'Edit ' . htmlspecial
         <span class="material-symbols-outlined">save</span>
         <?= $action === 'new' ? 'Create User' : 'Save Changes' ?>
       </button>
-      <a href="<?= APP_URL ?>/id/admin/users.php" class="btn">Cancel</a>
+      <a href="<?= APP_URL ?>/id/admin/users" class="btn">Cancel</a>
     </div>
   </form>
 <?php ui_card_close(); ?>

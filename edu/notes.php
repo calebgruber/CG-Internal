@@ -34,13 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ->execute([$class_id,$title,$content,$id,$uid]);
                 flash('success',"Note updated.");
             }
-            header('Location: '.APP_URL.'/edu/notes.php'); exit;
+            header('Location: '.APP_URL.'/edu/notes'); exit;
         }
     }
     if ($pa === 'delete') {
         db()->prepare('DELETE FROM edu_notes WHERE id=? AND user_id=?')->execute([(int)$_POST['note_id'],$uid]);
         flash('success','Note deleted.');
-        header('Location: '.APP_URL.'/edu/notes.php'); exit;
+        header('Location: '.APP_URL.'/edu/notes'); exit;
     }
 }
 
@@ -48,7 +48,7 @@ $edit_note = null;
 if ($action === 'edit' && $edit_id > 0) {
     $stmt = db()->prepare('SELECT * FROM edu_notes WHERE id=? AND user_id=?');
     $stmt->execute([$edit_id,$uid]); $edit_note = $stmt->fetch();
-    if (!$edit_note) { flash('danger','Note not found.'); header('Location: '.APP_URL.'/edu/notes.php'); exit; }
+    if (!$edit_note) { flash('danger','Note not found.'); header('Location: '.APP_URL.'/edu/notes'); exit; }
 }
 
 $classes = db()->prepare('SELECT id,name,color FROM edu_classes WHERE user_id=? ORDER BY name');
@@ -63,11 +63,11 @@ $notes->execute([$uid]); $notes = $notes->fetchAll();
 
 $nav_items = [
     ['icon'=>'dashboard',    'label'=>'Dashboard',   'href'=>APP_URL.'/edu/'],
-    ['icon'=>'school',       'label'=>'Classes',     'href'=>APP_URL.'/edu/classes.php'],
-    ['icon'=>'assignment',   'label'=>'Assignments', 'href'=>APP_URL.'/edu/assignments.php'],
-    ['icon'=>'task_alt',     'label'=>'Tasks',       'href'=>APP_URL.'/edu/tasks.php'],
-    ['icon'=>'sticky_note_2','label'=>'Notes',       'href'=>APP_URL.'/edu/notes.php','active'=>true],
-    ['icon'=>'calendar_month','label'=>'Schedule',   'href'=>APP_URL.'/edu/schedule.php'],
+    ['icon'=>'school',       'label'=>'Classes',     'href'=>APP_URL.'/edu/classes'],
+    ['icon'=>'assignment',   'label'=>'Assignments', 'href'=>APP_URL.'/edu/assignments'],
+    ['icon'=>'task_alt',     'label'=>'Tasks',       'href'=>APP_URL.'/edu/tasks'],
+    ['icon'=>'sticky_note_2','label'=>'Notes',       'href'=>APP_URL.'/edu/notes','active'=>true],
+    ['icon'=>'calendar_month','label'=>'Schedule',   'href'=>APP_URL.'/edu/schedule'],
     ['section'=>'Account'],
     ['icon'=>'apps',         'label'=>'All Apps',    'href'=>APP_URL.'/'],
 ];
@@ -77,7 +77,7 @@ $actions = $action==='list'?'<a href="?action=new" class="btn btn-primary btn-sm
     <span class="material-symbols-outlined">add</span> New Note</a>':'';
 
 ui_head($title.' – EDU Hub','edu','EDU Hub','school');
-ui_sidebar('EDU Hub','school',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('EDU Hub','school',$nav_items,APP_URL.'/id/auth/logout');
 ui_page_header($title,'EDU Hub → Notes',$actions);
 ?>
 <div class="page-body">
@@ -119,7 +119,7 @@ ui_page_header($title,'EDU Hub → Notes',$actions);
         <span class="material-symbols-outlined">save</span>
         <?= $action==='new'?'Save Note':'Update Note' ?>
       </button>
-      <a href="<?= APP_URL ?>/edu/notes.php" class="btn">Cancel</a>
+      <a href="<?= APP_URL ?>/edu/notes" class="btn">Cancel</a>
     </div>
   </form>
 <?php ui_card_close(); ?>

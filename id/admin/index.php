@@ -23,18 +23,18 @@ $recent_users = db()->query(
 
 $nav_items = [
     ['icon' => 'dashboard',       'label' => 'Dashboard',    'href' => APP_URL . '/id/admin/',         'active' => true],
-    ['icon' => 'group',           'label' => 'Users',        'href' => APP_URL . '/id/admin/users.php'],
-    ['icon' => 'apps',            'label' => 'Applications', 'href' => APP_URL . '/id/admin/apps.php'],
+    ['icon' => 'group',           'label' => 'Users',        'href' => APP_URL . '/id/admin/users'],
+    ['icon' => 'apps',            'label' => 'Applications', 'href' => APP_URL . '/id/admin/apps'],
     ['section' => 'System'],
     ['icon' => 'admin_panel_settings', 'label' => 'Global Admin', 'href' => APP_URL . '/admin/'],
 ];
 
-$actions = '<a href="' . APP_URL . '/id/admin/users.php?action=new" class="btn btn-primary btn-sm">
+$actions = '<a href="' . APP_URL . '/id/admin/users?action=new" class="btn btn-primary btn-sm">
   <span class="material-symbols-outlined">person_add</span> Add User
 </a>';
 
 ui_head('ID Admin', 'id', 'ID Admin', 'manage_accounts');
-ui_sidebar('ID Admin', 'manage_accounts', $nav_items, APP_URL . '/id/auth/logout.php');
+ui_sidebar('ID Admin', 'manage_accounts', $nav_items, APP_URL . '/id/auth/logout');
 ui_page_header('Dashboard', 'Identity & Access Management', $actions);
 ?>
 
@@ -63,7 +63,7 @@ ui_page_header('Dashboard', 'Identity & Access Management', $actions);
 <?php
 $apps = db()->query('SELECT * FROM apps WHERE is_active=1 ORDER BY sort_order,name')->fetchAll();
 ui_card_open('apps', 'Registered Applications',
-  '<a href="' . APP_URL . '/id/admin/apps.php" class="btn btn-sm" style="margin-left:auto">
+  '<a href="' . APP_URL . '/id/admin/apps" class="btn btn-sm" style="margin-left:auto">
     <span class="material-symbols-outlined">open_in_new</span> Manage
   </a>');
 ?>
@@ -80,7 +80,7 @@ ui_card_open('apps', 'Registered Applications',
   <div class="empty-state">
     <span class="material-symbols-outlined">apps</span>
     <h3>No applications yet</h3>
-    <p>Add applications in the <a href="<?= APP_URL ?>/id/admin/apps.php">Apps section</a>.</p>
+    <p>Add applications in the <a href="<?= APP_URL ?>/id/admin/apps">Apps section</a>.</p>
   </div>
   <?php endif; ?>
 <?php ui_card_close(); ?>
@@ -90,7 +90,7 @@ ui_card_open('apps', 'Registered Applications',
 <!-- ── Recent users ── -->
 <?php
 ui_card_open('group', 'Recent Users',
-  '<a href="' . APP_URL . '/id/admin/users.php" class="btn btn-sm" style="margin-left:auto">
+  '<a href="' . APP_URL . '/id/admin/users" class="btn btn-sm" style="margin-left:auto">
     <span class="material-symbols-outlined">open_in_new</span> All Users
   </a>');
 ?>
@@ -117,7 +117,7 @@ ui_card_open('group', 'Recent Users',
         </td>
         <td><?= ui_badge($u['is_active'] ? 'Active' : 'Disabled', $u['is_active'] ? 'success' : 'danger') ?></td>
         <td>
-          <a href="<?= APP_URL ?>/id/admin/users.php?action=edit&user=<?= urlencode($u['username']) ?>"
+          <a href="<?= APP_URL ?>/id/admin/users?action=edit&user=<?= urlencode($u['username']) ?>"
              class="btn btn-ghost btn-sm">
             <span class="material-symbols-outlined">edit</span>
           </a>
@@ -129,7 +129,7 @@ ui_card_open('group', 'Recent Users',
         <div class="empty-state" style="padding:1.5rem">
           <span class="material-symbols-outlined">group</span>
           <h3>No users yet</h3>
-          <p><a href="<?= APP_URL ?>/id/admin/users.php?action=new">Create the first user</a></p>
+          <p><a href="<?= APP_URL ?>/id/admin/users?action=new">Create the first user</a></p>
         </div>
       </td></tr>
       <?php endif; ?>

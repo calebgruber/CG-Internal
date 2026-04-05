@@ -149,7 +149,7 @@ function send_due_notification(array $user, array $item, string $type = 'assignm
 <p>Hi {$user['display_name']},</p>
 <p>This is a reminder that your {$type} <strong>" . htmlspecialchars($title) . "</strong>
 is due on <strong>{$due}</strong>.</p>
-<p><a class='btn' href='" . APP_URL . "/edu/assignments.php'>View Assignments</a></p>
+<p><a class='btn' href='" . APP_URL . "/edu/assignments'>View Assignments</a></p>
 <p>Stay on track! – CG Internal EDU Hub</p>";
 
     $email_ok = send_email($user['email'], $subject, $html);

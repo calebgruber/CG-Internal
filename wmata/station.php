@@ -13,7 +13,7 @@ $user = require_auth('wmata');
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
     flash('danger', 'Invalid station.');
-    header('Location: ' . APP_URL . '/wmata/stations.php');
+    header('Location: ' . APP_URL . '/wmata/stations');
     exit;
 }
 
@@ -32,7 +32,7 @@ $station_stmt->execute([$id]);
 $station = $station_stmt->fetch();
 if (!$station) {
     flash('danger', 'Station not found.');
-    header('Location: ' . APP_URL . '/wmata/stations.php');
+    header('Location: ' . APP_URL . '/wmata/stations');
     exit;
 }
 
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'UPDATE wmata_stations SET status=?, platform_blocks=?, google_maps_url=?, google_earth_url=?, notes=? WHERE id=?'
         )->execute([$status, $pb, $maps_url ?: null, $earth_url ?: null, $notes ?: null, $id]);
         flash('success', 'Station updated.');
-        header('Location: ' . APP_URL . '/wmata/station.php?id=' . $id); exit;
+        header('Location: ' . APP_URL . '/wmata/station?id=' . $id); exit;
     }
 
     if ($pa === 'add_check') {
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ->execute([$id, $name]);
             flash('success', 'Check item added.');
         }
-        header('Location: ' . APP_URL . '/wmata/station.php?id=' . $id . '#checks'); exit;
+        header('Location: ' . APP_URL . '/wmata/station?id=' . $id . '#checks'); exit;
     }
 
     if ($pa === 'toggle_check') {
@@ -71,14 +71,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cnotes = trim($_POST['check_notes'] ?? '');
         db()->prepare('UPDATE wmata_station_checks SET is_checked=?, notes=? WHERE id=? AND station_id=?')
             ->execute([$chk, $cnotes ?: null, $cid, $id]);
-        header('Location: ' . APP_URL . '/wmata/station.php?id=' . $id . '#checks'); exit;
+        header('Location: ' . APP_URL . '/wmata/station?id=' . $id . '#checks'); exit;
     }
 
     if ($pa === 'delete_check') {
         $cid = (int)($_POST['check_id'] ?? 0);
         db()->prepare('DELETE FROM wmata_station_checks WHERE id=? AND station_id=?')->execute([$cid, $id]);
         flash('success', 'Check item removed.');
-        header('Location: ' . APP_URL . '/wmata/station.php?id=' . $id . '#checks'); exit;
+        header('Location: ' . APP_URL . '/wmata/station?id=' . $id . '#checks'); exit;
     }
 
     if ($pa === 'upload_file') {
@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
-        header('Location: ' . APP_URL . '/wmata/station.php?id=' . $id . '#files'); exit;
+        header('Location: ' . APP_URL . '/wmata/station?id=' . $id . '#files'); exit;
     }
 
     if ($pa === 'delete_file') {
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             db()->prepare('DELETE FROM wmata_station_files WHERE id=?')->execute([$fid]);
             flash('success', 'File deleted.');
         }
-        header('Location: ' . APP_URL . '/wmata/station.php?id=' . $id . '#files'); exit;
+        header('Location: ' . APP_URL . '/wmata/station?id=' . $id . '#files'); exit;
     }
 }
 
@@ -147,10 +147,10 @@ $checks_done  = count(array_filter($checks, fn($c) => $c['is_checked']));
 
 $nav_items = [
     ['icon' => 'dashboard',         'label' => 'Dashboard',     'href' => APP_URL . '/wmata/'],
-    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations.php', 'active' => true],
-    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock.php'],
-    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator.php'],
-    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files.php'],
+    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations', 'active' => true],
+    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
+    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
+    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
 ];
 
 $status_badge = match($station['status']) {
@@ -159,7 +159,7 @@ $status_badge = match($station['status']) {
     default       => ['danger',  'Incomplete'],
 };
 
-$actions = '<a href="' . APP_URL . '/wmata/stations.php" class="btn btn-sm">
+$actions = '<a href="' . APP_URL . '/wmata/stations" class="btn btn-sm">
   <span class="material-symbols-outlined">arrow_back</span> Back to Stations
 </a>';
 

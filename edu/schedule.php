@@ -37,13 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ->execute([$class_id,$dow,$start,$end,$location,$id,$uid]);
                 flash('success','Schedule slot updated.');
             }
-            header('Location: '.APP_URL.'/edu/schedule.php'); exit;
+            header('Location: '.APP_URL.'/edu/schedule'); exit;
         }
     }
     if ($pa === 'delete') {
         db()->prepare('DELETE FROM edu_schedule WHERE id=? AND user_id=?')->execute([(int)$_POST['slot_id'],$uid]);
         flash('success','Slot removed.');
-        header('Location: '.APP_URL.'/edu/schedule.php'); exit;
+        header('Location: '.APP_URL.'/edu/schedule'); exit;
     }
 }
 
@@ -51,7 +51,7 @@ $edit_slot = null;
 if ($action === 'edit' && $edit_id > 0) {
     $stmt = db()->prepare('SELECT * FROM edu_schedule WHERE id=? AND user_id=?');
     $stmt->execute([$edit_id,$uid]); $edit_slot = $stmt->fetch();
-    if (!$edit_slot) { flash('danger','Slot not found.'); header('Location: '.APP_URL.'/edu/schedule.php'); exit; }
+    if (!$edit_slot) { flash('danger','Slot not found.'); header('Location: '.APP_URL.'/edu/schedule'); exit; }
 }
 
 $classes = db()->prepare('SELECT id,name,color FROM edu_classes WHERE user_id=? AND is_active=1 ORDER BY name');
@@ -72,11 +72,11 @@ $today = (int)date('w');
 
 $nav_items = [
     ['icon'=>'dashboard',    'label'=>'Dashboard',   'href'=>APP_URL.'/edu/'],
-    ['icon'=>'school',       'label'=>'Classes',     'href'=>APP_URL.'/edu/classes.php'],
-    ['icon'=>'assignment',   'label'=>'Assignments', 'href'=>APP_URL.'/edu/assignments.php'],
-    ['icon'=>'task_alt',     'label'=>'Tasks',       'href'=>APP_URL.'/edu/tasks.php'],
-    ['icon'=>'sticky_note_2','label'=>'Notes',       'href'=>APP_URL.'/edu/notes.php'],
-    ['icon'=>'calendar_month','label'=>'Schedule',   'href'=>APP_URL.'/edu/schedule.php','active'=>true],
+    ['icon'=>'school',       'label'=>'Classes',     'href'=>APP_URL.'/edu/classes'],
+    ['icon'=>'assignment',   'label'=>'Assignments', 'href'=>APP_URL.'/edu/assignments'],
+    ['icon'=>'task_alt',     'label'=>'Tasks',       'href'=>APP_URL.'/edu/tasks'],
+    ['icon'=>'sticky_note_2','label'=>'Notes',       'href'=>APP_URL.'/edu/notes'],
+    ['icon'=>'calendar_month','label'=>'Schedule',   'href'=>APP_URL.'/edu/schedule','active'=>true],
     ['section'=>'Account'],
     ['icon'=>'apps',         'label'=>'All Apps',    'href'=>APP_URL.'/'],
 ];
@@ -86,7 +86,7 @@ $actions = $action==='list'?'<a href="?action=new" class="btn btn-primary btn-sm
     <span class="material-symbols-outlined">add</span> Add Slot</a>':'';
 
 ui_head($title.' – EDU Hub','edu','EDU Hub','school');
-ui_sidebar('EDU Hub','school',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('EDU Hub','school',$nav_items,APP_URL.'/id/auth/logout');
 ui_page_header($title,'EDU Hub → Schedule',$actions);
 ?>
 <div class="page-body">
@@ -140,7 +140,7 @@ ui_page_header($title,'EDU Hub → Schedule',$actions);
 
     <div class="form-actions">
       <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined">save</span> Save</button>
-      <a href="<?= APP_URL ?>/edu/schedule.php" class="btn">Cancel</a>
+      <a href="<?= APP_URL ?>/edu/schedule" class="btn">Cancel</a>
     </div>
   </form>
 <?php ui_card_close(); ?>
@@ -152,7 +152,7 @@ if (!$classes) {
     echo '<div class="alerts"><div class="alert alert-info">
         <span class="material-symbols-outlined">info</span>
         <span class="alert-text">Add classes first before building your schedule.</span>
-        <a href="' . APP_URL . '/edu/classes.php?action=new" class="btn btn-primary btn-sm" style="margin-left:auto">Add Class</a>
+        <a href="' . APP_URL . '/edu/classes?action=new" class="btn btn-primary btn-sm" style="margin-left:auto">Add Class</a>
     </div></div>';
 }
 ui_card_open('calendar_month','Weekly Schedule');

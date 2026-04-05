@@ -148,7 +148,7 @@ function ui_sidebar(
 
     $user     = current_user();
     $initials = strtoupper(mb_substr($user['display_name'] ?? $user['username'] ?? 'U', 0, 2, 'UTF-8'));
-    $logout   = htmlspecialchars($user_logout_url ?: APP_URL . '/id/auth/logout.php');
+    $logout   = htmlspecialchars($user_logout_url ?: APP_URL . '/id/auth/logout');
 ?>
   <!-- ── Top navigation bar ─────────────────────────────── -->
   <div class="topbar">

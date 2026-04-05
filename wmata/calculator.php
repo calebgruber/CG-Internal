@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )->execute([$uid, $label, $feet, $multiplier, $blocks, $notes ?: null]);
             flash('success', "Saved: {$label} = {$blocks} blocks.");
         }
-        header('Location: ' . APP_URL . '/wmata/calculator.php');
+        header('Location: ' . APP_URL . '/wmata/calculator');
         exit;
     }
 
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cid = (int)($_POST['calc_id'] ?? 0);
         db()->prepare('DELETE FROM wmata_block_calculations WHERE id=? AND user_id=?')->execute([$cid, $uid]);
         flash('success', 'Calculation deleted.');
-        header('Location: ' . APP_URL . '/wmata/calculator.php');
+        header('Location: ' . APP_URL . '/wmata/calculator');
         exit;
     }
 }
@@ -66,10 +66,10 @@ $calcs = $calcs_stmt->fetchAll();
 
 $nav_items = [
     ['icon' => 'dashboard',         'label' => 'Dashboard',     'href' => APP_URL . '/wmata/'],
-    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations.php'],
-    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock.php'],
-    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator.php', 'active' => true],
-    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files.php'],
+    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations'],
+    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
+    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator', 'active' => true],
+    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
 ];
 
 ui_head('Calculator – WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');
@@ -169,7 +169,7 @@ ui_page_header('Feet → Blocks Calculator', 'WMATA Tracker › Calculator');
          value="<?= htmlspecialchars($search) ?>" style="max-width:300px">
   <button type="submit" class="btn btn-sm btn-primary">Search</button>
   <?php if ($search): ?>
-  <a href="<?= APP_URL ?>/wmata/calculator.php" class="btn btn-sm">Clear</a>
+  <a href="<?= APP_URL ?>/wmata/calculator" class="btn btn-sm">Clear</a>
   <?php endif; ?>
 </form>
 

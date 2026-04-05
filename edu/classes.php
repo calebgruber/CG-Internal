@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )->execute([$name,$code,$instructor,$color,$is_active,$id,$uid]);
                 flash('success', "Class \"{$name}\" updated.");
             }
-            header('Location: ' . APP_URL . '/edu/classes.php');
+            header('Location: ' . APP_URL . '/edu/classes');
             exit;
         }
     }
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int)($_POST['class_id'] ?? 0);
         db()->prepare('DELETE FROM edu_classes WHERE id=? AND user_id=?')->execute([$id,$uid]);
         flash('success', 'Class deleted.');
-        header('Location: ' . APP_URL . '/edu/classes.php');
+        header('Location: ' . APP_URL . '/edu/classes');
         exit;
     }
 }
@@ -62,7 +62,7 @@ if ($action === 'edit' && $edit_id > 0) {
     $stmt = db()->prepare('SELECT * FROM edu_classes WHERE id=? AND user_id=?');
     $stmt->execute([$edit_id, $uid]);
     $edit_class = $stmt->fetch();
-    if (!$edit_class) { flash('danger','Class not found.'); header('Location: '.APP_URL.'/edu/classes.php'); exit; }
+    if (!$edit_class) { flash('danger','Class not found.'); header('Location: '.APP_URL.'/edu/classes'); exit; }
 }
 
 $all_classes = db()->prepare(
@@ -76,11 +76,11 @@ $all_classes = $all_classes->fetchAll();
 
 $nav_items = [
     ['icon' => 'dashboard',     'label' => 'Dashboard',   'href' => APP_URL . '/edu/'],
-    ['icon' => 'school',        'label' => 'Classes',     'href' => APP_URL . '/edu/classes.php',     'active' => true],
-    ['icon' => 'assignment',    'label' => 'Assignments', 'href' => APP_URL . '/edu/assignments.php'],
-    ['icon' => 'task_alt',      'label' => 'Tasks',       'href' => APP_URL . '/edu/tasks.php'],
-    ['icon' => 'sticky_note_2', 'label' => 'Notes',       'href' => APP_URL . '/edu/notes.php'],
-    ['icon' => 'calendar_month','label' => 'Schedule',    'href' => APP_URL . '/edu/schedule.php'],
+    ['icon' => 'school',        'label' => 'Classes',     'href' => APP_URL . '/edu/classes',     'active' => true],
+    ['icon' => 'assignment',    'label' => 'Assignments', 'href' => APP_URL . '/edu/assignments'],
+    ['icon' => 'task_alt',      'label' => 'Tasks',       'href' => APP_URL . '/edu/tasks'],
+    ['icon' => 'sticky_note_2', 'label' => 'Notes',       'href' => APP_URL . '/edu/notes'],
+    ['icon' => 'calendar_month','label' => 'Schedule',    'href' => APP_URL . '/edu/schedule'],
     ['section' => 'Account'],
     ['icon' => 'apps',          'label' => 'All Apps',    'href' => APP_URL . '/'],
 ];
@@ -92,7 +92,7 @@ $actions = $action === 'list' ?
      </a>' : '';
 
 ui_head($title . ' – EDU Hub', 'edu', 'EDU Hub', 'school');
-ui_sidebar('EDU Hub', 'school', $nav_items, APP_URL . '/id/auth/logout.php');
+ui_sidebar('EDU Hub', 'school', $nav_items, APP_URL . '/id/auth/logout');
 ui_page_header($title, 'EDU Hub → Classes', $actions);
 ?>
 
@@ -156,7 +156,7 @@ ui_card_open('school', $action === 'new' ? 'Add New Class' : 'Edit ' . htmlspeci
         <span class="material-symbols-outlined">save</span>
         <?= $action === 'new' ? 'Add Class' : 'Save Changes' ?>
       </button>
-      <a href="<?= APP_URL ?>/edu/classes.php" class="btn">Cancel</a>
+      <a href="<?= APP_URL ?>/edu/classes" class="btn">Cancel</a>
     </div>
   </form>
 <?php ui_card_close(); ?>
@@ -188,7 +188,7 @@ ui_card_open('school', $action === 'new' ? 'Add New Class' : 'Edit ' . htmlspeci
         <p class="text-xs text-muted"><?= (int)$c['assignment_count'] ?> assignment<?= $c['assignment_count'] != 1 ? 's' : '' ?></p>
       </div>
       <div class="card-footer">
-        <a href="<?= APP_URL ?>/edu/assignments.php?class=<?= (int)$c['id'] ?>" class="btn btn-ghost btn-sm">
+        <a href="<?= APP_URL ?>/edu/assignments?class=<?= (int)$c['id'] ?>" class="btn btn-ghost btn-sm">
           <span class="material-symbols-outlined">assignment</span> Assignments
         </a>
         <a href="?action=edit&id=<?= (int)$c['id'] ?>" class="btn btn-ghost btn-sm">

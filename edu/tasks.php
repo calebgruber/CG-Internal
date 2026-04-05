@@ -38,19 +38,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ->execute([$title,$description,$due,$status,$priority,$id,$uid]);
                 flash('success',"Task \"{$title}\" updated.");
             }
-            header('Location: '.APP_URL.'/edu/tasks.php'); exit;
+            header('Location: '.APP_URL.'/edu/tasks'); exit;
         }
     }
     if ($pa === 'delete') {
         db()->prepare('DELETE FROM edu_tasks WHERE id=? AND user_id=?')->execute([(int)$_POST['task_id'],$uid]);
         flash('success','Task deleted.');
-        header('Location: '.APP_URL.'/edu/tasks.php'); exit;
+        header('Location: '.APP_URL.'/edu/tasks'); exit;
     }
     if ($pa === 'status') {
         $s = in_array($_POST['status']??'',['pending','in_progress','completed'])?$_POST['status']:'pending';
         db()->prepare('UPDATE edu_tasks SET status=? WHERE id=? AND user_id=?')
             ->execute([$s,(int)$_POST['task_id'],$uid]);
-        header('Location: '.APP_URL.'/edu/tasks.php'); exit;
+        header('Location: '.APP_URL.'/edu/tasks'); exit;
     }
     if ($pa === 'send_reminder') {
         $stmt = db()->prepare('SELECT * FROM edu_tasks WHERE id=? AND user_id=?');
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             send_due_notification($fu,$item,'task');
             flash('success','Reminder sent.');
         }
-        header('Location: '.APP_URL.'/edu/tasks.php'); exit;
+        header('Location: '.APP_URL.'/edu/tasks'); exit;
     }
 }
 
@@ -69,7 +69,7 @@ $edit_task = null;
 if ($action === 'edit' && $edit_id > 0) {
     $stmt = db()->prepare('SELECT * FROM edu_tasks WHERE id=? AND user_id=?');
     $stmt->execute([$edit_id,$uid]); $edit_task = $stmt->fetch();
-    if (!$edit_task) { flash('danger','Task not found.'); header('Location: '.APP_URL.'/edu/tasks.php'); exit; }
+    if (!$edit_task) { flash('danger','Task not found.'); header('Location: '.APP_URL.'/edu/tasks'); exit; }
 }
 
 $tasks = db()->prepare(
@@ -81,11 +81,11 @@ $tasks->execute([$uid]); $tasks = $tasks->fetchAll();
 
 $nav_items = [
     ['icon'=>'dashboard',    'label'=>'Dashboard',   'href'=>APP_URL.'/edu/'],
-    ['icon'=>'school',       'label'=>'Classes',     'href'=>APP_URL.'/edu/classes.php'],
-    ['icon'=>'assignment',   'label'=>'Assignments', 'href'=>APP_URL.'/edu/assignments.php'],
-    ['icon'=>'task_alt',     'label'=>'Tasks',       'href'=>APP_URL.'/edu/tasks.php','active'=>true],
-    ['icon'=>'sticky_note_2','label'=>'Notes',       'href'=>APP_URL.'/edu/notes.php'],
-    ['icon'=>'calendar_month','label'=>'Schedule',   'href'=>APP_URL.'/edu/schedule.php'],
+    ['icon'=>'school',       'label'=>'Classes',     'href'=>APP_URL.'/edu/classes'],
+    ['icon'=>'assignment',   'label'=>'Assignments', 'href'=>APP_URL.'/edu/assignments'],
+    ['icon'=>'task_alt',     'label'=>'Tasks',       'href'=>APP_URL.'/edu/tasks','active'=>true],
+    ['icon'=>'sticky_note_2','label'=>'Notes',       'href'=>APP_URL.'/edu/notes'],
+    ['icon'=>'calendar_month','label'=>'Schedule',   'href'=>APP_URL.'/edu/schedule'],
     ['section'=>'Account'],
     ['icon'=>'apps',         'label'=>'All Apps',    'href'=>APP_URL.'/'],
 ];
@@ -95,7 +95,7 @@ $actions = $action==='list'?'<a href="?action=new" class="btn btn-primary btn-sm
     <span class="material-symbols-outlined">add</span> New Task</a>':'';
 
 ui_head($title.' – EDU Hub','edu','EDU Hub','school');
-ui_sidebar('EDU Hub','school',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('EDU Hub','school',$nav_items,APP_URL.'/id/auth/logout');
 ui_page_header($title,'EDU Hub → Tasks',$actions);
 ?>
 <div class="page-body">
@@ -145,7 +145,7 @@ ui_page_header($title,'EDU Hub → Tasks',$actions);
         <span class="material-symbols-outlined">save</span>
         <?= $action==='new'?'Add Task':'Save' ?>
       </button>
-      <a href="<?= APP_URL ?>/edu/tasks.php" class="btn">Cancel</a>
+      <a href="<?= APP_URL ?>/edu/tasks" class="btn">Cancel</a>
     </div>
   </form>
 <?php ui_card_close(); ?>

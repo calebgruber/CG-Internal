@@ -10,5 +10,5 @@ require_once __DIR__ . '/../../shared/auth.php';
 
 logout_user();
 
-header('Location: ' . APP_URL . '/id/auth/login.php');
+header('Location: ' . APP_URL . '/id/auth/login');
 exit;

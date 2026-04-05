@@ -89,20 +89,20 @@ try {
 
 $nav_items = [
     ['icon' => 'dashboard',    'label' => 'Dashboard',   'href' => APP_URL . '/edu/',                 'active' => true],
-    ['icon' => 'school',       'label' => 'Classes',     'href' => APP_URL . '/edu/classes.php'],
-    ['icon' => 'assignment',   'label' => 'Assignments', 'href' => APP_URL . '/edu/assignments.php'],
-    ['icon' => 'task_alt',     'label' => 'Tasks',       'href' => APP_URL . '/edu/tasks.php'],
-    ['icon' => 'sticky_note_2','label' => 'Notes',       'href' => APP_URL . '/edu/notes.php'],
-    ['icon' => 'calendar_month','label' => 'Schedule',   'href' => APP_URL . '/edu/schedule.php'],
+    ['icon' => 'school',       'label' => 'Classes',     'href' => APP_URL . '/edu/classes'],
+    ['icon' => 'assignment',   'label' => 'Assignments', 'href' => APP_URL . '/edu/assignments'],
+    ['icon' => 'task_alt',     'label' => 'Tasks',       'href' => APP_URL . '/edu/tasks'],
+    ['icon' => 'sticky_note_2','label' => 'Notes',       'href' => APP_URL . '/edu/notes'],
+    ['icon' => 'calendar_month','label' => 'Schedule',   'href' => APP_URL . '/edu/schedule'],
 ];
 
 $actions = '
-  <a href="' . APP_URL . '/edu/assignments.php?action=new" class="btn btn-primary btn-sm">
+  <a href="' . APP_URL . '/edu/assignments?action=new" class="btn btn-primary btn-sm">
     <span class="material-symbols-outlined">add</span> New Assignment
   </a>';
 
 ui_head('EDU Hub', 'edu', 'EDU Hub', 'school');
-ui_sidebar('EDU Hub', 'school', $nav_items, APP_URL . '/id/auth/logout.php');
+ui_sidebar('EDU Hub', 'school', $nav_items, APP_URL . '/id/auth/logout');
 ui_page_header('Dashboard', date('l, F j, Y'), $actions);
 ?>
 
@@ -165,7 +165,7 @@ ui_page_header('Dashboard', date('l, F j, Y'), $actions);
   <!-- ── Upcoming due ── -->
   <?php
   ui_card_open('event_upcoming', 'Due in the Next 7 Days',
-    '<a href="' . APP_URL . '/edu/assignments.php" class="btn btn-sm" style="margin-left:auto">View All</a>');
+    '<a href="' . APP_URL . '/edu/assignments" class="btn btn-sm" style="margin-left:auto">View All</a>');
   ?>
     <?php if ($upcoming): ?>
     <div class="table-wrap">
@@ -210,7 +210,7 @@ ui_page_header('Dashboard', date('l, F j, Y'), $actions);
   <?php
   $days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   ui_card_open('calendar_today', "Today's Schedule (" . $days[$today_dow] . ")",
-    '<a href="' . APP_URL . '/edu/schedule.php" class="btn btn-sm" style="margin-left:auto">Edit</a>');
+    '<a href="' . APP_URL . '/edu/schedule" class="btn btn-sm" style="margin-left:auto">Edit</a>');
   ?>
     <?php if ($schedule): ?>
     <div style="display:flex;flex-direction:column;gap:.5rem;">
@@ -235,7 +235,7 @@ ui_page_header('Dashboard', date('l, F j, Y'), $actions);
     <div class="empty-state" style="padding:1.5rem">
       <span class="material-symbols-outlined">calendar_today</span>
       <h3>No classes today</h3>
-      <p><a href="<?= APP_URL ?>/edu/schedule.php">Set up your schedule</a></p>
+      <p><a href="<?= APP_URL ?>/edu/schedule">Set up your schedule</a></p>
     </div>
     <?php endif; ?>
   <?php ui_card_close(); ?>
@@ -243,14 +243,14 @@ ui_page_header('Dashboard', date('l, F j, Y'), $actions);
   <!-- ── Recent notes ── -->
   <?php
   ui_card_open('sticky_note_2', 'Recent Notes',
-    '<a href="' . APP_URL . '/edu/notes.php?action=new" class="btn btn-primary btn-sm" style="margin-left:auto">
+    '<a href="' . APP_URL . '/edu/notes?action=new" class="btn btn-primary btn-sm" style="margin-left:auto">
        <span class="material-symbols-outlined">add</span> New Note
      </a>');
   ?>
     <?php if ($recent_notes): ?>
     <div style="display:flex;flex-direction:column;gap:.5rem;">
       <?php foreach ($recent_notes as $note): ?>
-      <a href="<?= APP_URL ?>/edu/notes.php?action=edit&id=<?= (int)$note['id'] ?>"
+      <a href="<?= APP_URL ?>/edu/notes?action=edit&id=<?= (int)$note['id'] ?>"
          style="display:flex;gap:.75rem;align-items:center;padding:.625rem;
                 background:var(--surface-raised);border-radius:var(--radius);
                 text-decoration:none;color:var(--text)">
@@ -273,7 +273,7 @@ ui_page_header('Dashboard', date('l, F j, Y'), $actions);
     <div class="empty-state" style="padding:1.5rem">
       <span class="material-symbols-outlined">sticky_note_2</span>
       <h3>No notes yet</h3>
-      <p><a href="<?= APP_URL ?>/edu/notes.php?action=new">Create your first note</a></p>
+      <p><a href="<?= APP_URL ?>/edu/notes?action=new">Create your first note</a></p>
     </div>
     <?php endif; ?>
   <?php ui_card_close(); ?>

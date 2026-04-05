@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     flash('success', 'Settings saved.');
-    header('Location: ' . APP_URL . '/admin/settings.php');
+    header('Location: ' . APP_URL . '/admin/settings');
     exit;
 }
 
@@ -44,17 +44,17 @@ foreach ($all_settings as $row) $s[$row['key']] = $row['value'];
 
 $nav_items = [
     ['icon'=>'dashboard',       'label'=>'Overview',    'href'=>APP_URL.'/admin/'],
-    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings.php', 'active'=>true],
-    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations.php'],
-    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance.php'],
-    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts.php'],
+    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings', 'active'=>true],
+    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations'],
+    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance'],
+    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts'],
     ['section'=>'Sub-systems'],
     ['icon'=>'manage_accounts', 'label'=>'ID Admin',    'href'=>APP_URL.'/id/admin/'],
     ['icon'=>'school',          'label'=>'EDU Hub',     'href'=>APP_URL.'/edu/'],
 ];
 
 ui_head('Settings – System Admin','admin','System Admin','admin_panel_settings');
-ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout');
 ui_page_header('Settings','System Admin → Settings');
 
 function sv(string $key, array $settings, string $default = ''): string {

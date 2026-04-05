@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
-        header('Location: ' . APP_URL . '/wmata/files.php'); exit;
+        header('Location: ' . APP_URL . '/wmata/files'); exit;
     }
 
     if ($pa === 'delete') {
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             db()->prepare('DELETE FROM wmata_global_files WHERE id=?')->execute([$fid]);
             flash('success', 'File deleted.');
         }
-        header('Location: ' . APP_URL . '/wmata/files.php'); exit;
+        header('Location: ' . APP_URL . '/wmata/files'); exit;
     }
 }
 
@@ -87,10 +87,10 @@ $files = $files_stmt->fetchAll();
 
 $nav_items = [
     ['icon' => 'dashboard',         'label' => 'Dashboard',     'href' => APP_URL . '/wmata/'],
-    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations.php'],
-    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock.php'],
-    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator.php'],
-    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files.php', 'active' => true],
+    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations'],
+    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
+    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
+    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files', 'active' => true],
 ];
 
 ui_head('Files – WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');

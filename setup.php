@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$already_setup) {
         <strong>⚠ Delete <code>setup.php</code> from your server immediately.</strong>
       </p>
       <div class="form-actions" style="justify-content:center;margin-top:1rem">
-        <a href="<?= APP_URL ?>/id/auth/login.php" class="btn btn-primary">
+        <a href="<?= APP_URL ?>/id/auth/login" class="btn btn-primary">
           <span class="material-symbols-outlined">login</span> Go to Login
         </a>
       </div>
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$already_setup) {
         </div>
       </div>
       <div class="form-actions" style="justify-content:center;margin-top:1rem">
-        <a href="<?= APP_URL ?>/id/auth/login.php" class="btn btn-primary">
+        <a href="<?= APP_URL ?>/id/auth/login" class="btn btn-primary">
           <span class="material-symbols-outlined">login</span> Go to Login
         </a>
       </div>

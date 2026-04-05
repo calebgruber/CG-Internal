@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     )->execute([$name,$slug,$icon,$url,$description,$is_active,$sort_order,$id]);
                     flash('success', "App \"{$name}\" updated.");
                 }
-                header('Location: ' . APP_URL . '/id/admin/apps.php');
+                header('Location: ' . APP_URL . '/id/admin/apps');
                 exit;
             } catch (PDOException $e) {
                 if ($e->getCode() === '23000') {
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int)($_POST['app_id'] ?? 0);
         db()->prepare('DELETE FROM apps WHERE id=?')->execute([$id]);
         flash('success', 'Application deleted.');
-        header('Location: ' . APP_URL . '/id/admin/apps.php');
+        header('Location: ' . APP_URL . '/id/admin/apps');
         exit;
     }
 }
@@ -74,7 +74,7 @@ if ($action === 'edit' && $edit_id > 0) {
     $edit_app = $stmt->fetch();
     if (!$edit_app) {
         flash('danger', 'App not found.');
-        header('Location: ' . APP_URL . '/id/admin/apps.php');
+        header('Location: ' . APP_URL . '/id/admin/apps');
         exit;
     }
 }
@@ -86,8 +86,8 @@ $all_apps = db()->query('SELECT a.*, COUNT(uaa.user_id) AS user_count
 
 $nav_items = [
     ['icon' => 'dashboard', 'label' => 'Dashboard',    'href' => APP_URL . '/id/admin/'],
-    ['icon' => 'group',     'label' => 'Users',        'href' => APP_URL . '/id/admin/users.php'],
-    ['icon' => 'apps',      'label' => 'Applications', 'href' => APP_URL . '/id/admin/apps.php', 'active' => true],
+    ['icon' => 'group',     'label' => 'Users',        'href' => APP_URL . '/id/admin/users'],
+    ['icon' => 'apps',      'label' => 'Applications', 'href' => APP_URL . '/id/admin/apps', 'active' => true],
     ['section' => 'System'],
     ['icon' => 'admin_panel_settings', 'label' => 'Global Admin', 'href' => APP_URL . '/admin/'],
 ];
@@ -99,7 +99,7 @@ $actions = ($action === 'list') ?
      </a>' : '';
 
 ui_head($title, 'id', 'ID Admin', 'manage_accounts');
-ui_sidebar('ID Admin', 'manage_accounts', $nav_items, APP_URL . '/id/auth/logout.php');
+ui_sidebar('ID Admin', 'manage_accounts', $nav_items, APP_URL . '/id/auth/logout');
 ui_page_header($title, 'ID Admin → Applications', $actions);
 ?>
 
@@ -174,7 +174,7 @@ ui_card_open('apps', $action === 'new' ? 'New Application' : 'Edit ' . htmlspeci
         <span class="material-symbols-outlined">save</span>
         <?= $action === 'new' ? 'Create App' : 'Save Changes' ?>
       </button>
-      <a href="<?= APP_URL ?>/id/admin/apps.php" class="btn">Cancel</a>
+      <a href="<?= APP_URL ?>/id/admin/apps" class="btn">Cancel</a>
     </div>
   </form>
 

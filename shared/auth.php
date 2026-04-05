@@ -117,7 +117,7 @@ function redirect_to_login(string $app_slug = ''): never {
     $return_url = APP_URL . $_SERVER['REQUEST_URI'];
     $params     = ['return_url' => $return_url];
     if ($app_slug !== '') $params['app'] = $app_slug;
-    header('Location: ' . APP_URL . '/id/auth/login.php?' . http_build_query($params));
+    header('Location: ' . APP_URL . '/id/auth/login?' . http_build_query($params));
     exit;
 }
 

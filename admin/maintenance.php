@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_setting('maintenance_mode', '0');
         flash('success', 'Maintenance mode disabled. Site is back online.');
     }
-    header('Location: ' . APP_URL . '/admin/maintenance.php');
+    header('Location: ' . APP_URL . '/admin/maintenance');
     exit;
 }
 
@@ -30,17 +30,17 @@ $is_on = setting('maintenance_mode', '0') === '1';
 
 $nav_items = [
     ['icon'=>'dashboard',       'label'=>'Overview',    'href'=>APP_URL.'/admin/'],
-    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings.php'],
-    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations.php'],
-    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance.php', 'active'=>true],
-    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts.php'],
+    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings'],
+    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations'],
+    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance', 'active'=>true],
+    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts'],
     ['section'=>'Sub-systems'],
     ['icon'=>'manage_accounts', 'label'=>'ID Admin',    'href'=>APP_URL.'/id/admin/'],
     ['icon'=>'school',          'label'=>'EDU Hub',     'href'=>APP_URL.'/edu/'],
 ];
 
 ui_head('Maintenance – System Admin','admin','System Admin','admin_panel_settings');
-ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout');
 ui_page_header('Maintenance Mode','System Admin → Maintenance');
 ?>
 <div class="page-body">

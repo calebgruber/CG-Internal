@@ -27,19 +27,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             db()->prepare('INSERT INTO system_alerts (text,type,icon,dismissible) VALUES (?,?,?,?)')
                 ->execute([$text,$type,$icon,$dismissible]);
             flash('success','Alert created.');
-            header('Location: '.APP_URL.'/admin/alerts.php'); exit;
+            header('Location: '.APP_URL.'/admin/alerts'); exit;
         }
     }
     if ($pa === 'toggle') {
         $id = (int)$_POST['alert_id'];
         db()->prepare('UPDATE system_alerts SET is_active = NOT is_active WHERE id=?')->execute([$id]);
         flash('success','Alert toggled.');
-        header('Location: '.APP_URL.'/admin/alerts.php'); exit;
+        header('Location: '.APP_URL.'/admin/alerts'); exit;
     }
     if ($pa === 'delete') {
         db()->prepare('DELETE FROM system_alerts WHERE id=?')->execute([(int)$_POST['alert_id']]);
         flash('success','Alert deleted.');
-        header('Location: '.APP_URL.'/admin/alerts.php'); exit;
+        header('Location: '.APP_URL.'/admin/alerts'); exit;
     }
 }
 
@@ -47,17 +47,17 @@ $alerts = db()->query('SELECT * FROM system_alerts ORDER BY is_active DESC, crea
 
 $nav_items = [
     ['icon'=>'dashboard',       'label'=>'Overview',    'href'=>APP_URL.'/admin/'],
-    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings.php'],
-    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations.php'],
-    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance.php'],
-    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts.php', 'active'=>true],
+    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings'],
+    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations'],
+    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance'],
+    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts', 'active'=>true],
     ['section'=>'Sub-systems'],
     ['icon'=>'manage_accounts', 'label'=>'ID Admin',    'href'=>APP_URL.'/id/admin/'],
     ['icon'=>'school',          'label'=>'EDU Hub',     'href'=>APP_URL.'/edu/'],
 ];
 
 ui_head('Alerts – System Admin','admin','System Admin','admin_panel_settings');
-ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout');
 ui_page_header('System Alerts','System Admin → Alerts');
 ?>
 <div class="page-body">

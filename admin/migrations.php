@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash('danger', 'Migration error: ' . $e->getMessage());
             }
         }
-        header('Location: ' . APP_URL . '/admin/migrations.php');
+        header('Location: ' . APP_URL . '/admin/migrations');
         exit;
     }
 
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = basename($_POST['migration_name'] ?? '');
         db()->prepare('DELETE FROM migrations WHERE name=?')->execute([$name]);
         flash('warning', "Migration \"{$name}\" marked as not applied. SQL was NOT reversed.");
-        header('Location: ' . APP_URL . '/admin/migrations.php');
+        header('Location: ' . APP_URL . '/admin/migrations');
         exit;
     }
 }
@@ -96,10 +96,10 @@ $applied = get_applied_migrations();
 
 $nav_items = [
     ['icon'=>'dashboard',       'label'=>'Overview',    'href'=>APP_URL.'/admin/'],
-    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings.php'],
-    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations.php', 'active'=>true],
-    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance.php'],
-    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts.php'],
+    ['icon'=>'settings',        'label'=>'Settings',    'href'=>APP_URL.'/admin/settings'],
+    ['icon'=>'storage',         'label'=>'Migrations',  'href'=>APP_URL.'/admin/migrations', 'active'=>true],
+    ['icon'=>'engineering',     'label'=>'Maintenance', 'href'=>APP_URL.'/admin/maintenance'],
+    ['icon'=>'add_alert',       'label'=>'Alerts',      'href'=>APP_URL.'/admin/alerts'],
     ['section'=>'Sub-systems'],
     ['icon'=>'manage_accounts', 'label'=>'ID Admin',    'href'=>APP_URL.'/id/admin/'],
     ['icon'=>'school',          'label'=>'EDU Hub',     'href'=>APP_URL.'/edu/'],
@@ -108,7 +108,7 @@ $nav_items = [
 $pending_count = count(array_filter($files, fn($f) => !in_array(basename($f,'.sql'), $applied)));
 
 ui_head('Migrations – System Admin','admin','System Admin','admin_panel_settings');
-ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout.php');
+ui_sidebar('System Admin','admin_panel_settings',$nav_items,APP_URL.'/id/auth/logout');
 
 $actions = $pending_count > 0 ?
     '<form method="POST" style="display:inline">' . csrf_field() .

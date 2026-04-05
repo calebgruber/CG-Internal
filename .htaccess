@@ -24,17 +24,21 @@ ServerSignature Off
 # <DirectoryMatch> is NOT valid in .htaccess; use RewriteRule instead.
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^(shared|db)(/|$) - [F,L]
-</IfModule>
 
-# ── Remove trailing .php (optional) ─────────────────────
-# Uncomment if you want /id/auth/login instead of /id/auth/login.php
-# <IfModule mod_rewrite.c>
-#     RewriteEngine On
-#     RewriteCond %{REQUEST_FILENAME} !-d
-#     RewriteCond %{REQUEST_FILENAME}.php -f
-#     RewriteRule ^(.+?)/?$ /$1.php [L,QSA]
-# </IfModule>
+    # Block direct access to shared/ and db/ directories
+    RewriteRule ^(shared|db)(/|$) - [F,L]
+
+    # 1. Redirect requests WITH .php extension → extensionless (canonical URLs)
+    #    Skip this for real directories and for the rewrite loop guard
+    RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+    RewriteRule ^ /%1 [R=301,L,NE]
+
+    # 2. Internally rewrite extensionless URLs → .php (if the .php file exists)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+?)/?$ /$1.php [L,QSA]
+</IfModule>
 
 # ── Default index files ──────────────────────────────────
 DirectoryIndex index.php index.html

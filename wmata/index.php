@@ -50,10 +50,10 @@ $overall_pct = $total_stations > 0 ? round($complete / $total_stations * 100) : 
 
 $nav_items = [
     ['icon' => 'dashboard',         'label' => 'Dashboard',     'href' => APP_URL . '/wmata/',                     'active' => true],
-    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations.php'],
-    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock.php'],
-    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator.php'],
-    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files.php'],
+    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations'],
+    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
+    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
+    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
 ];
 
 ui_head('WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');
@@ -118,11 +118,11 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
     </div>
   </div>
   <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-    <a href="<?= APP_URL ?>/wmata/stations.php" class="btn btn-primary btn-sm">
+    <a href="<?= APP_URL ?>/wmata/stations" class="btn btn-primary btn-sm">
       <span class="material-symbols-outlined">train</span> View Stations
     </a>
-    <a href="<?= APP_URL ?>/wmata/stations.php?status=incomplete" class="btn btn-sm">Incomplete</a>
-    <a href="<?= APP_URL ?>/wmata/stations.php?status=in_progress" class="btn btn-sm">In Progress</a>
+    <a href="<?= APP_URL ?>/wmata/stations?status=incomplete" class="btn btn-sm">Incomplete</a>
+    <a href="<?= APP_URL ?>/wmata/stations?status=in_progress" class="btn btn-sm">In Progress</a>
   </div>
   <?php ui_card_close(); ?>
 
@@ -153,7 +153,7 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
   <?php ui_card_close(); ?>
 
   <!-- ── Rolling stock ── -->
-  <?php ui_card_open('directions_railway', 'Rolling Stock Progress', '<a href="' . APP_URL . '/wmata/rolling-stock.php" class="btn btn-sm" style="margin-left:auto">View All</a>', '#919D9D'); ?>
+  <?php ui_card_open('directions_railway', 'Rolling Stock Progress', '<a href="' . APP_URL . '/wmata/rolling-stock" class="btn btn-sm" style="margin-left:auto">View All</a>', '#919D9D'); ?>
   <div style="display:flex;flex-direction:column;gap:1rem">
     <?php foreach (['7000' => '7000 Series', '6000' => '6000 Series'] as $ser => $label):
       $serTotal = (int)$rs[$ser]['total'];

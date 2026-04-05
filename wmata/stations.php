@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    header('Location: ' . APP_URL . '/wmata/stations.php?' . http_build_query([
+    header('Location: ' . APP_URL . '/wmata/stations?' . http_build_query([
         'q'      => $_POST['q']      ?? '',
         'line'   => $_POST['line']   ?? '',
         'status' => $_POST['filter_status'] ?? '',
@@ -108,10 +108,10 @@ $cnt_incomplete  = (int)($counts_raw['incomplete']  ?? 0);
 
 $nav_items = [
     ['icon' => 'dashboard',         'label' => 'Dashboard',     'href' => APP_URL . '/wmata/'],
-    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations.php', 'active' => true],
-    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock.php'],
-    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator.php'],
-    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files.php'],
+    ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations', 'active' => true],
+    ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
+    ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
+    ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
 ];
 
 ui_head('Stations – WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');
@@ -150,7 +150,7 @@ ui_page_header('Stations', 'WMATA Tracker › Stations');
     <option value="complete"    <?= $f_stat==='complete'   ?'selected':''?>>Complete</option>
   </select>
   <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-  <a href="<?= APP_URL ?>/wmata/stations.php" class="btn btn-sm">Clear</a>
+  <a href="<?= APP_URL ?>/wmata/stations" class="btn btn-sm">Clear</a>
 </form>
 
 <?php if ($stations): ?>
@@ -198,7 +198,7 @@ ui_page_header('Stations', 'WMATA Tracker › Stations');
   <tr>
     <td><input type="checkbox" name="station_ids[]" value="<?= (int)$s['id'] ?>" class="row-check"></td>
     <td>
-      <a href="<?= APP_URL ?>/wmata/station.php?id=<?= (int)$s['id'] ?>" style="font-weight:600;text-decoration:none;color:var(--primary)">
+      <a href="<?= APP_URL ?>/wmata/station?id=<?= (int)$s['id'] ?>" style="font-weight:600;text-decoration:none;color:var(--primary)">
         <?= htmlspecialchars($s['name']) ?>
       </a>
       <div class="text-xs text-muted"><?= htmlspecialchars($s['abbreviation']) ?></div>
@@ -217,7 +217,7 @@ ui_page_header('Stations', 'WMATA Tracker › Stations');
     <td style="text-align:center"><?= $s['platform_blocks'] !== null ? (int)$s['platform_blocks'] : '—' ?></td>
     <td>
       <div style="display:flex;gap:.25rem;flex-wrap:wrap">
-        <a href="<?= APP_URL ?>/wmata/station.php?id=<?= (int)$s['id'] ?>" class="btn btn-ghost btn-sm" title="View">
+        <a href="<?= APP_URL ?>/wmata/station?id=<?= (int)$s['id'] ?>" class="btn btn-ghost btn-sm" title="View">
           <span class="material-symbols-outlined">open_in_new</span>
         </a>
         <!-- Quick status cycle -->
