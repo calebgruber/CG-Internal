@@ -19,11 +19,12 @@ if ($id <= 0) {
 }
 
 /* ── Helpers ─────────────────────────────────────── */
-$allowed_ext  = ['jpg','jpeg','png','gif','webp','obj','mtl','glb','gltf','fbx','blend','txt','json','yaml','yml','xml','zip'];
+$allowed_ext  = ['jpg','jpeg','png','gif','webp','obj','mtl','glb','gltf','fbx','blend','txt','json','yaml','yml','xml','zip','jar','mrpack'];
 $allowed_mime = ['image/jpeg','image/png','image/gif','image/webp',
                  'application/octet-stream','model/gltf+json','model/gltf-binary',
                  'text/plain','application/json','application/xml','text/xml',
-                 'application/zip','application/x-zip-compressed'];
+                 'application/zip','application/x-zip-compressed',
+                 'application/java-archive','application/x-java-archive'];
 $upload_dir   = __DIR__ . '/uploads/stations/';
 $max_size     = 50 * 1024 * 1024;
 
@@ -97,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fname = uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $orig);
                 if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
                 if (move_uploaded_file($file['tmp_name'], $upload_dir . $fname)) {
-                    $ftype = in_array($_POST['file_type'] ?? '', ['texture','model','diagram','screenshot','other'])
+                    $ftype = in_array($_POST['file_type'] ?? '', ['texture','model','diagram','screenshot','mod','other'])
                              ? $_POST['file_type'] : 'other';
                     $fnotes = trim($_POST['file_notes'] ?? '');
                     db()->prepare(
@@ -152,6 +153,7 @@ $nav_items = [
     ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
     ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
     ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
+    ['icon' => 'extension',         'label' => 'Mods',          'href' => APP_URL . '/wmata/mods'],
 ];
 
 $status_badge = match($station['status']) {
@@ -178,21 +180,73 @@ ui_page_header(htmlspecialchars($station['name']), 'WMATA Tracker › Stations �
   <?php foreach ($station_lines as $l): ?>
   <?= wmata_line_badge($l['abbreviation'], $l['color'], 24) ?>
   <?php endforeach; ?>
-  <?php if ($station['google_maps_url']): ?>
-  <a href="<?= htmlspecialchars($station['google_maps_url']) ?>" target="_blank" rel="noopener" class="btn btn-sm">
+  <?php
+    // Generate auto links from lat/lng if stored URLs are empty
+    $lat = $station['lat'] ?? null;
+    $lng = $station['lng'] ?? null;
+    $maps_link  = $station['google_maps_url']  ?: ($lat && $lng ? "https://www.google.com/maps?q={$lat},{$lng}" : '');
+    $earth_link = $station['google_earth_url'] ?: ($lat && $lng ? "https://earth.google.com/web/@{$lat},{$lng},0a,500d" : '');
+    $wmata_link = "https://www.wmata.com/rail/station/?station=" . rawurlencode($station['name']);
+  ?>
+  <?php if ($maps_link): ?>
+  <a href="<?= htmlspecialchars($maps_link) ?>" target="_blank" rel="noopener" class="btn btn-sm">
     <span class="material-symbols-outlined">map</span> Google Maps
   </a>
   <?php endif; ?>
-  <?php if ($station['google_earth_url']): ?>
-  <a href="<?= htmlspecialchars($station['google_earth_url']) ?>" target="_blank" rel="noopener" class="btn btn-sm">
+  <?php if ($earth_link): ?>
+  <a href="<?= htmlspecialchars($earth_link) ?>" target="_blank" rel="noopener" class="btn btn-sm">
     <span class="material-symbols-outlined">public</span> Google Earth
   </a>
   <?php endif; ?>
+  <a href="<?= htmlspecialchars($wmata_link) ?>" target="_blank" rel="noopener" class="btn btn-sm">
+    <span class="material-symbols-outlined">train</span> WMATA Site
+  </a>
 </div>
 
 <div class="card-grid card-grid-2">
 
-<!-- ── Edit form ── -->
+<!-- ── Google Maps embed ── -->
+<?php
+$embed_lat = $station['lat'] ?? null;
+$embed_lng = $station['lng'] ?? null;
+if ($embed_lat && $embed_lng):
+    $embed_url = 'https://maps.google.com/maps?q=' . urlencode($station['name'] . ' Metro Station') . '&output=embed&ll=' . $embed_lat . ',' . $embed_lng . '&z=16';
+?>
+<div class="card card-full" style="border-left:3px solid #003DA5;--card-accent:#003DA5;--card-accent-rgb:0,61,165;--card-text-on-solid:#ffffff">
+  <div class="card-top">
+    <div class="card-tab" style="background:#003DA5;border-top-right-radius:100px;border-bottom-right-radius:100px">
+      <span class="material-symbols-outlined" style="color:#fff">map</span>
+      <h3 style="color:#fff">Map – <?= htmlspecialchars($station['name']) ?></h3>
+    </div>
+    <div class="card-header-actions">
+      <?php if ($maps_link): ?>
+      <a href="<?= htmlspecialchars($maps_link) ?>" target="_blank" rel="noopener" class="btn btn-sm">
+        <span class="material-symbols-outlined">open_in_new</span> Open in Google Maps
+      </a>
+      <?php endif; ?>
+      <?php if ($earth_link): ?>
+      <a href="<?= htmlspecialchars($earth_link) ?>" target="_blank" rel="noopener" class="btn btn-sm">
+        <span class="material-symbols-outlined">public</span> Google Earth
+      </a>
+      <?php endif; ?>
+      <a href="<?= htmlspecialchars($wmata_link) ?>" target="_blank" rel="noopener" class="btn btn-sm">
+        <span class="material-symbols-outlined">train</span> WMATA
+      </a>
+    </div>
+  </div>
+  <div class="card-body" style="padding:0">
+    <iframe
+      src="<?= htmlspecialchars($embed_url) ?>"
+      width="100%" height="400" style="border:0;display:block" allowfullscreen
+      loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+      title="Map of <?= htmlspecialchars($station['name']) ?> Metro Station">
+    </iframe>
+  </div>
+</div>
+<?php endif; ?>
+
+<!-- ── Edit form + Diagram ── -->
+<div class="card-grid card-grid-2" style="display:contents">
 <?php ui_card_open('edit', 'Station Details', '', '#003DA5'); ?>
 <form method="POST">
   <?= csrf_field() ?>
@@ -264,7 +318,8 @@ ui_page_header(htmlspecialchars($station['name']), 'WMATA Tracker › Stations �
 <?php endif; ?>
 <?php ui_card_close(); ?>
 
-</div><!-- card-grid-2 -->
+</div><!-- inner card-grid-2 contents -->
+</div><!-- outer card-grid wrapping map + details -->
 
 <!-- ── Checklist ── -->
 <div id="checks" style="margin-top:1.5rem">
@@ -345,6 +400,7 @@ ui_card_open('checklist', 'Checklist', $check_extra, '#10b981');
         <option value="model">Model</option>
         <option value="diagram">Diagram</option>
         <option value="screenshot">Screenshot</option>
+        <option value="mod">Mod</option>
         <option value="other">Other</option>
       </select>
     </div>
@@ -374,6 +430,7 @@ ui_card_open('checklist', 'Checklist', $check_extra, '#10b981');
         'model'      => 'warning',
         'diagram'    => 'success',
         'screenshot' => 'neutral',
+        'mod'        => 'info',
         default      => 'neutral',
     };
     $dl_url = APP_URL . '/wmata/uploads/stations/' . rawurlencode($f['filename']);

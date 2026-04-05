@@ -113,6 +113,7 @@ $nav_items = [
     ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
     ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
     ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
+    ['icon' => 'extension',         'label' => 'Mods',          'href' => APP_URL . '/wmata/mods'],
 ];
 
 ui_head('Stations – WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');

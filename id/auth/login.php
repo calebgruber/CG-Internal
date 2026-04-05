@@ -118,6 +118,20 @@ function valid_return_url(string $url): string {
       <?php else: ?>
       <p>Internal management platform</p>
       <?php endif; ?>
+      <div class="login-banner-features">
+        <div class="login-banner-feature">
+          <span class="material-symbols-outlined">school</span>
+          <span>EDU Hub</span>
+        </div>
+        <div class="login-banner-feature">
+          <span class="material-symbols-outlined">train</span>
+          <span>WMATA Tracker</span>
+        </div>
+        <div class="login-banner-feature">
+          <span class="material-symbols-outlined">manage_accounts</span>
+          <span>ID Admin</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -129,13 +143,18 @@ function valid_return_url(string $url): string {
     </button>
 
     <div class="login-form-logo">
-      <span class="material-symbols-outlined">lock</span>
-      <?= htmlspecialchars(APP_NAME) ?>
+      <div class="login-form-logo-icon">
+        <span class="material-symbols-outlined">lock</span>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:1rem"><?= htmlspecialchars(APP_NAME) ?></div>
+        <div style="font-size:0.75rem;color:var(--text-muted);font-weight:400">Secure Access</div>
+      </div>
     </div>
 
-    <h2>Sign in</h2>
+    <h2>Welcome back</h2>
     <p class="login-sub">
-      <?= $app_slug ? 'Continue to ' . htmlspecialchars(strtoupper($app_slug)) : 'Welcome back' ?>
+      <?= $app_slug ? 'Sign in to continue to <strong>' . htmlspecialchars(strtoupper($app_slug)) . '</strong>' : 'Sign in to your account' ?>
     </p>
 
     <?php if ($error): ?>
@@ -147,7 +166,7 @@ function valid_return_url(string $url): string {
     </div>
     <?php endif; ?>
 
-    <form method="POST" action="">
+    <form method="POST" action="" class="login-form" autocomplete="on">
       <?= csrf_field() ?>
       <?php if ($app_slug !== ''): ?>
       <input type="hidden" name="app" value="<?= htmlspecialchars($app_slug) ?>">
@@ -158,20 +177,26 @@ function valid_return_url(string $url): string {
 
       <div class="form-group">
         <label for="username">Username or Email</label>
-        <input type="text" id="username" name="username" class="form-control"
-               autocomplete="username"
-               value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
-               autofocus required>
+        <div class="input-icon-wrap">
+          <span class="material-symbols-outlined input-icon">person</span>
+          <input type="text" id="username" name="username" class="form-control form-control-icon"
+                 autocomplete="username"
+                 value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
+                 autofocus required placeholder="Enter your username or email">
+        </div>
       </div>
 
       <div class="form-group">
         <label for="pwd">Password</label>
-        <input type="password" id="pwd" name="password" class="form-control"
-               autocomplete="current-password" required>
+        <div class="input-icon-wrap">
+          <span class="material-symbols-outlined input-icon">lock</span>
+          <input type="password" id="pwd" name="password" class="form-control form-control-icon"
+                 autocomplete="current-password" required placeholder="Enter your password">
+        </div>
       </div>
 
       <div class="form-actions" style="margin-top:1.5rem">
-        <button type="submit" class="btn btn-primary w-full">
+        <button type="submit" class="btn btn-primary w-full" style="padding:.625rem 1rem;font-size:.9375rem">
           <span class="material-symbols-outlined">login</span>
           Sign In
         </button>

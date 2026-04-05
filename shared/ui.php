@@ -61,6 +61,8 @@ function _card_accent_color(string $icon): string {
         'directions_railway'   => '#919D9D',
         'bar_chart'            => '#003DA5',
         'upload_file'          => '#f59e0b',
+        'extension'            => '#6366f1',
+        'add_circle'           => '#6366f1',
     ];
     return $map[$icon] ?? '#3b82f6';
 }
@@ -152,6 +154,9 @@ function ui_sidebar(
 ?>
   <!-- ── Top navigation bar ─────────────────────────────── -->
   <div class="topbar">
+    <button id="mobile-menu-btn" class="topbar-btn mobile-menu-btn" title="Open menu" aria-label="Toggle navigation">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
     <a href="<?= APP_URL ?>/" class="topbar-launcher">
       <span class="material-symbols-outlined">home</span>
       Launcher
@@ -169,9 +174,9 @@ function ui_sidebar(
       <?php if ($user): ?>
       <span class="topbar-user">
         <div class="topbar-avatar"><?= htmlspecialchars($initials) ?></div>
-        <span class="hidden" style="display:none" id="topbar-username"><?= htmlspecialchars($user['display_name'] ?? $user['username']) ?></span>
+        <span class="topbar-username"><?= htmlspecialchars($user['display_name'] ?? $user['username']) ?></span>
       </span>
-      <a href="<?= $logout ?>" class="topbar-btn" title="Sign out">
+      <a href="<?= $logout ?>" class="topbar-btn topbar-logout" title="Sign out">
         <span class="material-symbols-outlined">logout</span>
       </a>
       <?php endif; ?>
@@ -179,7 +184,7 @@ function ui_sidebar(
   </div>
 
   <!-- Mobile overlay -->
-  <div id="sidebar-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;top:2.625rem;"></div>
+  <div id="sidebar-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;top:2.75rem;"></div>
 
   <aside class="sidebar">
     <div class="sidebar-header">
