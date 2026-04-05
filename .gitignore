@@ -1,0 +1,27 @@
+# ── PHP / Composer ───────────────────────────────────────
+vendor/
+composer.lock
+
+# ── Local config (contains secrets) ─────────────────────
+config.local.php
+.env
+.env.*
+
+# ── Logs ─────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS / IDE ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# ── WMATA uploads ────────────────────────────────────────
+wmata/uploads/stations/
+wmata/uploads/rolling-stock/
+wmata/uploads/global/
+
+# ── Setup file should be deleted post-install ────────────
+# setup.php  ← uncomment after you've confirmed setup works
