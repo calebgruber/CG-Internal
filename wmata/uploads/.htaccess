@@ -1,0 +1,2 @@
+# Prevent direct execution of PHP files
+php_flag engine off

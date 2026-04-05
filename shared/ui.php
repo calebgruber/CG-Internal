@@ -52,6 +52,15 @@ function _card_accent_color(string $icon): string {
         'assignment'           => '#ef4444',
         // slate — neutral lists
         'list'                 => '#64748b',
+        // WMATA colors
+        'train'                => '#003DA5',
+        'directions_transit'   => '#BF0D3E',
+        'calculate'            => '#10b981',
+        'folder'               => '#f59e0b',
+        'dashboard'            => '#6366f1',
+        'directions_railway'   => '#919D9D',
+        'bar_chart'            => '#003DA5',
+        'upload_file'          => '#f59e0b',
     ];
     return $map[$icon] ?? '#3b82f6';
 }
@@ -126,7 +135,7 @@ function ui_head(
 }
 
 /**
- * Render the sidebar.
+ * Render the sidebar — also outputs the fixed top navbar above everything.
  */
 function ui_sidebar(
     string $app_heading,
@@ -137,11 +146,40 @@ function ui_sidebar(
     // Store context so ui_page_header() can show the app badge
     _ui_context($app_heading, $header_icon);
 
-    $user = current_user();
+    $user     = current_user();
     $initials = strtoupper(mb_substr($user['display_name'] ?? $user['username'] ?? 'U', 0, 2, 'UTF-8'));
+    $logout   = htmlspecialchars($user_logout_url ?: APP_URL . '/id/auth/logout.php');
 ?>
+  <!-- ── Top navigation bar ─────────────────────────────── -->
+  <div class="topbar">
+    <a href="<?= APP_URL ?>/" class="topbar-launcher">
+      <span class="material-symbols-outlined">home</span>
+      Launcher
+    </a>
+    <span class="topbar-sep">›</span>
+    <span class="topbar-app">
+      <span class="material-symbols-outlined"><?= htmlspecialchars($header_icon) ?></span>
+      <?= htmlspecialchars($app_heading) ?>
+    </span>
+
+    <div class="topbar-right">
+      <button id="theme-toggle" class="topbar-btn" title="Toggle theme">
+        <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+      </button>
+      <?php if ($user): ?>
+      <span class="topbar-user">
+        <div class="topbar-avatar"><?= htmlspecialchars($initials) ?></div>
+        <span class="hidden" style="display:none" id="topbar-username"><?= htmlspecialchars($user['display_name'] ?? $user['username']) ?></span>
+      </span>
+      <a href="<?= $logout ?>" class="topbar-btn" title="Sign out">
+        <span class="material-symbols-outlined">logout</span>
+      </a>
+      <?php endif; ?>
+    </div>
+  </div>
+
   <!-- Mobile overlay -->
-  <div id="sidebar-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;"></div>
+  <div id="sidebar-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;top:2.625rem;"></div>
 
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -168,17 +206,15 @@ function ui_sidebar(
     </nav>
 
     <div class="sidebar-footer">
-<?php if ($user): ?>
-      <a href="<?= htmlspecialchars($user_logout_url ?: APP_URL . '/id/auth/logout.php') ?>"
-         class="user-info" style="text-decoration:none;">
+      <?php if ($user): ?>
+      <div class="user-info" style="cursor:default;">
         <div class="user-avatar"><?= htmlspecialchars($initials) ?></div>
         <div class="user-details">
           <div class="user-name truncate"><?= htmlspecialchars($user['display_name'] ?? $user['username']) ?></div>
           <div class="user-role"><?= htmlspecialchars(ucfirst($user['role'] ?? 'user')) ?></div>
         </div>
-        <span class="material-symbols-outlined" style="color:#475569;font-size:1rem;margin-left:auto;">logout</span>
-      </a>
-<?php endif; ?>
+      </div>
+      <?php endif; ?>
     </div>
   </aside>
 
@@ -212,9 +248,6 @@ function ui_page_header(string $title, string $breadcrumb = '', string $extra_ht
         <?php endif; ?>
       </div>
       <div class="header-actions">
-        <button id="theme-toggle" class="btn btn-ghost btn-sm" title="Toggle theme">
-          <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
-        </button>
         <?= $extra_html ?>
       </div>
     </div>
