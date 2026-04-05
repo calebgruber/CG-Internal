@@ -7,6 +7,7 @@ require_once __DIR__ . '/../shared/config.php';
 require_once __DIR__ . '/../shared/db.php';
 require_once __DIR__ . '/../shared/auth.php';
 require_once __DIR__ . '/../shared/ui.php';
+require_once __DIR__ . '/inc/helpers.php';
 
 $user = require_auth('wmata');
 
@@ -180,7 +181,13 @@ ui_page_header('Rolling Stock', 'WMATA Tracker › Rolling Stock');
 ?>
 
 <!-- ── Series summary ── -->
-<?php ui_card_open('bar_chart', $ser . ' Series Progress', '', '#919D9D'); ?>
+<?php
+$series_extra = '<span style="display:flex;align-items:center;gap:.5rem">'
+              . wmata_metro_logo(20)
+              . '<span style="font-size:.8125rem;color:var(--text-muted)">' . $pct . '% complete</span>'
+              . '</span>';
+ui_card_open('bar_chart', $ser . ' Series Progress', $series_extra, '#919D9D');
+?>
 <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:.75rem">
   <div><span class="text-muted text-sm">Cars Complete</span><br><strong><?= $t['done'] ?>/<?= $t['total'] ?></strong></div>
   <div><span class="text-muted text-sm">Progress</span><br><strong><?= $pct ?>%</strong></div>

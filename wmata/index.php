@@ -7,6 +7,7 @@ require_once __DIR__ . '/../shared/config.php';
 require_once __DIR__ . '/../shared/db.php';
 require_once __DIR__ . '/../shared/auth.php';
 require_once __DIR__ . '/../shared/ui.php';
+require_once __DIR__ . '/inc/helpers.php';
 
 $user = require_auth('wmata');
 
@@ -67,7 +68,11 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
 <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));margin-bottom:1.5rem;">
   <div class="stat-card">
     <div class="stat-icon" style="background:rgba(99,102,241,.12);color:#6366f1">
+      <?php if (wmata_icon_exists('metro')): ?>
+      <?= wmata_metro_logo(28) ?>
+      <?php else: ?>
       <span class="material-symbols-outlined">train</span>
+      <?php endif; ?>
     </div>
     <div class="stat-label">Total Stations</div>
     <div class="stat-value"><?= $total_stations ?></div>
@@ -135,8 +140,8 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
     ?>
     <div>
       <div style="display:flex;justify-content:space-between;margin-bottom:.25rem">
-        <span style="display:flex;align-items:center;gap:.4rem">
-          <span style="width:12px;height:12px;border-radius:50%;background:<?= htmlspecialchars($line['color']) ?>;display:inline-block"></span>
+        <span style="display:flex;align-items:center;gap:.5rem">
+          <?= wmata_line_badge($line['abbreviation'], $line['color'], 20) ?>
           <span style="font-weight:500;font-size:.875rem"><?= htmlspecialchars($line['name']) ?></span>
         </span>
         <span style="font-size:.8125rem;color:var(--text-muted)"><?= (int)$line['done'] ?>/<?= (int)$line['total'] ?> (<?= $pct ?>%)</span>

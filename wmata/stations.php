@@ -7,6 +7,7 @@ require_once __DIR__ . '/../shared/config.php';
 require_once __DIR__ . '/../shared/db.php';
 require_once __DIR__ . '/../shared/auth.php';
 require_once __DIR__ . '/../shared/ui.php';
+require_once __DIR__ . '/inc/helpers.php';
 
 $user = require_auth('wmata');
 
@@ -204,11 +205,9 @@ ui_page_header('Stations', 'WMATA Tracker › Stations');
       <div class="text-xs text-muted"><?= htmlspecialchars($s['abbreviation']) ?></div>
     </td>
     <td>
-      <div style="display:flex;gap:.25rem;flex-wrap:wrap">
+      <div style="display:flex;gap:.25rem;flex-wrap:wrap;align-items:center">
         <?php foreach ($sl as $line): ?>
-        <span class="badge" style="background:<?= htmlspecialchars($line['color']) ?>;color:#fff;font-weight:700;font-size:.7rem">
-          <?= htmlspecialchars($line['abbreviation']) ?>
-        </span>
+        <?= wmata_line_badge($line['abbreviation'], $line['color'], 20) ?>
         <?php endforeach; ?>
         <?php if (!$sl): ?><span class="text-muted text-xs">—</span><?php endif; ?>
       </div>

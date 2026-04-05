@@ -7,6 +7,7 @@ require_once __DIR__ . '/../shared/config.php';
 require_once __DIR__ . '/../shared/db.php';
 require_once __DIR__ . '/../shared/auth.php';
 require_once __DIR__ . '/../shared/ui.php';
+require_once __DIR__ . '/inc/helpers.php';
 
 $user = require_auth('wmata');
 
@@ -175,9 +176,7 @@ ui_page_header(htmlspecialchars($station['name']), 'WMATA Tracker â€º Stations â
   <?= ui_badge($status_badge[1], $status_badge[0]) ?>
   <span class="badge badge-neutral" style="font-size:.75rem"><?= htmlspecialchars($station['abbreviation']) ?></span>
   <?php foreach ($station_lines as $l): ?>
-  <span class="badge" style="background:<?= htmlspecialchars($l['color']) ?>;color:#fff;font-weight:700">
-    <?= htmlspecialchars($l['abbreviation']) ?>
-  </span>
+  <?= wmata_line_badge($l['abbreviation'], $l['color'], 24) ?>
   <?php endforeach; ?>
   <?php if ($station['google_maps_url']): ?>
   <a href="<?= htmlspecialchars($station['google_maps_url']) ?>" target="_blank" rel="noopener" class="btn btn-sm">
