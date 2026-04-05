@@ -66,8 +66,8 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
 
 <!-- ── Stat cards ── -->
 <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));margin-bottom:1.5rem;">
-  <div class="stat-card">
-    <div class="stat-icon" style="background:rgba(99,102,241,.12);color:#6366f1">
+  <div class="stat-card" style="border-left:3px solid #003DA5">
+    <div class="stat-icon" style="background:rgba(0,61,165,.12);color:#003DA5">
       <?php if (wmata_icon_exists('metro')): ?>
       <?= wmata_metro_logo(28) ?>
       <?php else: ?>
@@ -77,7 +77,7 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
     <div class="stat-label">Total Stations</div>
     <div class="stat-value"><?= $total_stations ?></div>
   </div>
-  <div class="stat-card">
+  <div class="stat-card" style="border-left:3px solid var(--success)">
     <div class="stat-icon" style="background:rgba(16,185,129,.12);color:var(--success)">
       <span class="material-symbols-outlined">check_circle</span>
     </div>
@@ -87,7 +87,7 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
       <div class="progress-fill" style="width:<?= $total_stations > 0 ? round($complete/$total_stations*100) : 0 ?>%;background:var(--success)"></div>
     </div>
   </div>
-  <div class="stat-card">
+  <div class="stat-card" style="border-left:3px solid var(--warning)">
     <div class="stat-icon" style="background:rgba(245,158,11,.12);color:var(--warning)">
       <span class="material-symbols-outlined">pending</span>
     </div>
@@ -97,7 +97,7 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
       <div class="progress-fill" style="width:<?= $total_stations > 0 ? round($in_progress/$total_stations*100) : 0 ?>%;background:var(--warning)"></div>
     </div>
   </div>
-  <div class="stat-card">
+  <div class="stat-card" style="border-left:3px solid var(--danger)">
     <div class="stat-icon" style="background:rgba(239,68,68,.12);color:var(--danger)">
       <span class="material-symbols-outlined">radio_button_unchecked</span>
     </div>

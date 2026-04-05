@@ -107,8 +107,15 @@ $cnt_complete    = (int)($counts_raw['complete']    ?? 0);
 $cnt_in_progress = (int)($counts_raw['in_progress'] ?? 0);
 $cnt_incomplete  = (int)($counts_raw['incomplete']  ?? 0);
 
+/* ── Pagination ─────────────────────────────────── */
+$page    = max(1, (int)($_GET['page'] ?? 1));
+$per_page = 15;
+$total_rows = count($stations);
+$total_pages = max(1, (int)ceil($total_rows / $per_page));
+$page = min($page, $total_pages);
+$stations_page = array_slice($stations, ($page - 1) * $per_page, $per_page);
+
 $nav_items = [
-    ['icon' => 'dashboard',         'label' => 'Dashboard',     'href' => APP_URL . '/wmata/'],
     ['icon' => 'train',             'label' => 'Stations',      'href' => APP_URL . '/wmata/stations', 'active' => true],
     ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
     ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
@@ -188,7 +195,7 @@ ui_page_header('Stations', 'WMATA Tracker › Stations');
     </tr>
   </thead>
   <tbody>
-  <?php foreach ($stations as $s):
+  <?php foreach ($stations_page as $s):
     $sl = $station_lines[$s['id']] ?? [];
     $status_badge = match($s['status']) {
         'complete'    => ['success', 'Complete'],
@@ -246,6 +253,51 @@ ui_page_header('Stations', 'WMATA Tracker › Stations');
 </table>
 </div>
 </form><!-- bulk-form -->
+
+<?php if ($total_pages > 1): ?>
+<div class="pagination" style="margin-top:1rem">
+  <?php
+    $base_params = ['q' => $q, 'line' => $f_line, 'status' => $f_stat];
+    // First
+    if ($page > 1): ?>
+    <a href="?<?= http_build_query(array_merge($base_params, ['page' => 1])) ?>" class="page-btn" title="First page">
+      <span class="material-symbols-outlined">first_page</span>
+    </a>
+    <a href="?<?= http_build_query(array_merge($base_params, ['page' => $page - 1])) ?>" class="page-btn" title="Previous page">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </a>
+  <?php else: ?>
+    <span class="page-btn page-btn-disabled"><span class="material-symbols-outlined">first_page</span></span>
+    <span class="page-btn page-btn-disabled"><span class="material-symbols-outlined">chevron_left</span></span>
+  <?php endif; ?>
+
+  <?php
+    // Page number window
+    $window = 2;
+    $pstart = max(1, $page - $window);
+    $pend   = min($total_pages, $page + $window);
+    if ($pstart > 1): ?><span class="page-ellipsis">…</span><?php endif;
+    for ($p = $pstart; $p <= $pend; $p++): ?>
+    <a href="?<?= http_build_query(array_merge($base_params, ['page' => $p])) ?>"
+       class="page-btn <?= $p === $page ? 'page-btn-active' : '' ?>"><?= $p ?></a>
+  <?php endfor;
+    if ($pend < $total_pages): ?><span class="page-ellipsis">…</span><?php endif; ?>
+
+  <?php if ($page < $total_pages): ?>
+    <a href="?<?= http_build_query(array_merge($base_params, ['page' => $page + 1])) ?>" class="page-btn" title="Next page">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </a>
+    <a href="?<?= http_build_query(array_merge($base_params, ['page' => $total_pages])) ?>" class="page-btn" title="Last page">
+      <span class="material-symbols-outlined">last_page</span>
+    </a>
+  <?php else: ?>
+    <span class="page-btn page-btn-disabled"><span class="material-symbols-outlined">chevron_right</span></span>
+    <span class="page-btn page-btn-disabled"><span class="material-symbols-outlined">last_page</span></span>
+  <?php endif; ?>
+
+  <span class="page-info">Page <?= $page ?> of <?= $total_pages ?> (<?= $total_rows ?> stations)</span>
+</div>
+<?php endif; ?>
 
 <?php else: ?>
 <div class="empty-state">
