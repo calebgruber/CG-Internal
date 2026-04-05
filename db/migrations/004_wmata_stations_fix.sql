@@ -68,10 +68,6 @@ UPDATE wmata_stations SET lat = 38.9930000 WHERE abbreviation = 'LDG' AND lat < 
 -- ── Fill wmata_url for all stations ──────────────────────────
 -- Format: https://www.wmata.com/rider-guide/stations/{slug}.cfm
 
-UPDATE wmata_stations SET wmata_url = CONCAT('https://www.wmata.com/rider-guide/stations/', url_slug, '.cfm')
-FROM (SELECT 'SHD' AS abbr, 'shady-grove'                       AS url_slug) t
-WHERE wmata_stations.abbreviation = t.abbr;
-
 -- Red Line
 UPDATE wmata_stations SET wmata_url = 'https://www.wmata.com/rider-guide/stations/shady-grove.cfm'                       WHERE abbreviation = 'SHD';
 UPDATE wmata_stations SET wmata_url = 'https://www.wmata.com/rider-guide/stations/rockville.cfm'                         WHERE abbreviation = 'ROK';
