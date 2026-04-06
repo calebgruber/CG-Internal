@@ -27,21 +27,35 @@ if (!is_logged_in()) {
 $app_name    = trim($_GET['app_name'] ?? '');
 $redirect_to = trim($_GET['redirect']  ?? '');
 
-// Validate the redirect URL is on our own origin
-function _transit_valid_url(string $url): string {
-    if ($url === '') return '';
+// Determine whether the destination is external (different host, https only)
+function _transit_is_external(string $url): bool {
+    if ($url === '') return false;
     $allowed_host = parse_url(APP_URL, PHP_URL_HOST);
     $parsed       = parse_url($url);
     $host         = $parsed['host'] ?? '';
-    // Allow same-host or relative paths
+    return $host !== '' && $host !== $allowed_host;
+}
+
+// Accept same-origin URLs or external https:// URLs; reject http:// external
+function _transit_valid_url(string $url): string {
+    if ($url === '') return '';
+    $parsed       = parse_url($url);
+    $host         = $parsed['host'] ?? '';
+    $allowed_host = parse_url(APP_URL, PHP_URL_HOST);
+    // Same-origin or relative → always ok
     if ($host === $allowed_host || $host === '') return $url;
+    // External: only allow https
+    $scheme = strtolower($parsed['scheme'] ?? '');
+    if ($scheme === 'https') return $url;
     return '';
 }
 
 $safe_redirect = _transit_valid_url($redirect_to);
+$is_external   = $safe_redirect !== '' && _transit_is_external($safe_redirect);
 if ($safe_redirect === '') {
     // Nothing valid to redirect to — just go to launcher
     $safe_redirect = APP_URL . '/';
+    $is_external   = false;
 }
 
 if ($app_name === '') $app_name = 'the app';
@@ -66,7 +80,7 @@ try {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>Launching <?= htmlspecialchars($app_name) ?> | <?= APP_NAME ?></title>
+  <title><?= $is_external ? 'External Site Warning' : 'Launching ' . htmlspecialchars($app_name) ?> | <?= APP_NAME ?></title>
   <link rel="stylesheet" href="<?= APP_URL ?>/shared/assets/style.css">
   <?php if ($login_banner_bg): ?>
   <style>.login-banner { background: <?= $login_banner_bg ?> !important; }</style>
@@ -131,6 +145,54 @@ try {
       0%, 80%, 100% { opacity: 0.3; transform: scale(1); }
       40%           { opacity: 1;   transform: scale(1.3); }
     }
+
+    /* External-site warning panel */
+    .transit-external-warning {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0;
+    }
+
+    .transit-ext-icon {
+      width: 3.25rem;
+      height: 3.25rem;
+      border-radius: 50%;
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+
+    .transit-ext-icon .material-symbols-outlined {
+      font-size: 1.625rem;
+      color: #f59e0b;
+    }
+
+    .transit-ext-url {
+      display: inline-block;
+      margin: .75rem 0 1.5rem;
+      padding: .375rem .75rem;
+      background: var(--surface-raised, rgba(0,0,0,0.04));
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: .8125rem;
+      font-family: monospace;
+      color: var(--text-muted);
+      word-break: break-all;
+      max-width: 100%;
+    }
+
+    .transit-ext-actions {
+      display: flex;
+      gap: .75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: .25rem;
+    }
   </style>
   <script>
     /* Apply saved theme before first paint */
@@ -157,24 +219,70 @@ try {
 
     <div class="login-form-logo">
       <div class="login-form-logo-icon">
-        <span class="material-symbols-outlined">rocket_launch</span>
+        <span class="material-symbols-outlined"><?= $is_external ? 'open_in_new' : 'rocket_launch' ?></span>
       </div>
       <div>
         <div style="font-weight:700;font-size:1rem"><?= htmlspecialchars(APP_NAME) ?></div>
-        <div style="font-size:0.75rem;color:var(--text-muted);font-weight:400">App Launcher</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);font-weight:400"><?= $is_external ? 'External Link' : 'App Launcher' ?></div>
       </div>
     </div>
 
-    <div class="transit-panel">
-      <div class="transit-spinner"></div>
+    <?php if ($is_external): ?>
+    <!-- External-site confirmation (shown first) -->
+    <div class="transit-external-warning" id="ext-warning">
+      <div class="transit-ext-icon">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h2 style="font-size:1.375rem;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin-bottom:.375rem">
+        You're leaving <?= htmlspecialchars(APP_NAME) ?>
+      </h2>
+      <p style="font-size:.9rem;color:var(--text-muted);line-height:1.55;margin:0">
+        <strong><?= htmlspecialchars($app_name) ?></strong> is hosted on an external site.
+      </p>
+      <span class="transit-ext-url"><?= htmlspecialchars(parse_url($safe_redirect, PHP_URL_HOST) ?: $safe_redirect) ?></span>
+      <div class="transit-ext-actions">
+        <button class="btn" onclick="history.back()">
+          <span class="material-symbols-outlined">arrow_back</span>
+          Go Back
+        </button>
+        <button class="btn btn-primary" onclick="confirmExternal()">
+          <span class="material-symbols-outlined">open_in_new</span>
+          Continue
+        </button>
+      </div>
+    </div>
 
+    <!-- Loading panel (hidden until confirmed) -->
+    <div class="transit-panel" id="transit-loading" style="display:none">
+      <div class="transit-spinner"></div>
+      <h2 style="font-size:1.375rem;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin-bottom:0.375rem">
+        Redirecting you
+      </h2>
+      <p style="font-size:0.9375rem;color:var(--text-muted);line-height:1.5;margin:0">
+        Opening <strong><?= htmlspecialchars($app_name) ?></strong>&hellip;
+      </p>
+      <div class="transit-dot-row">
+        <span class="transit-dot"></span>
+        <span class="transit-dot"></span>
+        <span class="transit-dot"></span>
+      </div>
+    </div>
+
+    <div class="login-form-footer" id="transit-footer" style="display:none">
+      Not redirecting?
+      <a href="<?= htmlspecialchars($safe_redirect) ?>">Click here</a>.
+    </div>
+
+    <?php else: ?>
+    <!-- Internal app — show spinner immediately -->
+    <div class="transit-panel" id="transit-loading">
+      <div class="transit-spinner"></div>
       <h2 style="font-size:1.375rem;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin-bottom:0.375rem">
         Logging you in
       </h2>
       <p style="font-size:0.9375rem;color:var(--text-muted);line-height:1.5;margin:0">
         Opening <strong><?= htmlspecialchars($app_name) ?></strong>&hellip;
       </p>
-
       <div class="transit-dot-row">
         <span class="transit-dot"></span>
         <span class="transit-dot"></span>
@@ -186,16 +294,32 @@ try {
       Not redirecting?
       <a href="<?= htmlspecialchars($safe_redirect) ?>">Click here</a>.
     </div>
+    <?php endif; ?>
 
   </div>
 
 </div>
 
 <script>
-  // Auto-redirect after a brief moment to show the loading screen
-  setTimeout(function () {
-    window.location.href = <?= json_encode($safe_redirect) ?>;
-  }, 3000);
+  var redirectUrl = <?= json_encode($safe_redirect) ?>;
+  var isExternal  = <?= $is_external ? 'true' : 'false' ?>;
+  var timer       = null;
+
+  function startRedirect() {
+    timer = setTimeout(function () {
+      window.location.href = redirectUrl;
+    }, 3000);
+  }
+
+  function confirmExternal() {
+    document.getElementById('ext-warning').style.display     = 'none';
+    document.getElementById('transit-loading').style.display = '';
+    document.getElementById('transit-footer').style.display  = '';
+    startRedirect();
+  }
+
+  // For internal apps start immediately
+  if (!isExternal) startRedirect();
 </script>
 
 </body>
