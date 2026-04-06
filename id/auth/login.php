@@ -13,11 +13,13 @@ $app_slug   = trim($_GET['app'] ?? '');
 $return_url = trim($_GET['return_url'] ?? '');
 
 // Read banner background from settings
-$login_banner_img = '';
-$login_banner_bg  = '';
+$login_banner_img             = '';
+$login_banner_bg              = '';
+$login_banner_overlay_color   = '';
+$login_banner_overlay_opacity = '';
 try {
     $rows = db()->query("SELECT `key`,`value` FROM settings WHERE `key` IN
-        ('login_banner')")->fetchAll();
+        ('login_banner','login_banner_overlay_color','login_banner_overlay_opacity')")->fetchAll();
     $cfg  = array_column($rows, 'value', 'key');
     $raw_img = $cfg['login_banner'] ?? '';
     // login_banner can be an image URL (http/https) or a CSS gradient/color
@@ -26,6 +28,8 @@ try {
     } elseif ($raw_img !== '' && preg_match('/^[\w\s#(),.\/%\-+:\']+$/', $raw_img)) {
         $login_banner_bg = $raw_img;
     }
+    $login_banner_overlay_color   = $cfg['login_banner_overlay_color']   ?? '';
+    $login_banner_overlay_opacity = $cfg['login_banner_overlay_opacity'] ?? '';
 } catch (Throwable $e) { /* ignore */ }
 
 // If already logged in → bounce to app launcher
@@ -104,6 +108,15 @@ function valid_return_url(string $url): string {
   <div class="login-banner">
     <?php if ($login_banner_img): ?>
     <img src="<?= htmlspecialchars($login_banner_img) ?>" alt="" class="login-banner-img">
+    <?php endif; ?>
+    <?php if ($login_banner_overlay_color !== ''): ?>
+    <?php
+      $ov_color   = preg_replace('/[^#a-zA-Z0-9(),.\s%]/', '', $login_banner_overlay_color);
+      $ov_opacity = is_numeric($login_banner_overlay_opacity)
+          ? max(0, min(1, (float)$login_banner_overlay_opacity))
+          : 0.5;
+    ?>
+    <div class="login-banner-overlay" style="background:<?= $ov_color ?>;opacity:<?= $ov_opacity ?>;"></div>
     <?php endif; ?>
   </div>
 

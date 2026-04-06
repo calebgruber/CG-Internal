@@ -61,10 +61,13 @@ if ($safe_redirect === '') {
 if ($app_name === '') $app_name = 'the app';
 
 // Load banner settings (same as login.php)
-$login_banner_img = '';
-$login_banner_bg  = '';
+$login_banner_img             = '';
+$login_banner_bg              = '';
+$login_banner_overlay_color   = '';
+$login_banner_overlay_opacity = '';
 try {
-    $rows = db()->query("SELECT `key`,`value` FROM settings WHERE `key` = 'login_banner'")->fetchAll();
+    $rows = db()->query("SELECT `key`,`value` FROM settings WHERE `key` IN
+        ('login_banner','login_banner_overlay_color','login_banner_overlay_opacity')")->fetchAll();
     $cfg  = array_column($rows, 'value', 'key');
     $raw  = $cfg['login_banner'] ?? '';
     if ($raw !== '' && (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://'))) {
@@ -72,6 +75,8 @@ try {
     } elseif ($raw !== '' && preg_match('/^[\w\s#(),.\/%\-+:\']+$/', $raw)) {
         $login_banner_bg = $raw;
     }
+    $login_banner_overlay_color   = $cfg['login_banner_overlay_color']   ?? '';
+    $login_banner_overlay_opacity = $cfg['login_banner_overlay_opacity'] ?? '';
 } catch (Throwable $e) { /* ignore */ }
 ?>
 <!DOCTYPE html>
@@ -211,6 +216,15 @@ try {
   <div class="login-banner">
     <?php if ($login_banner_img): ?>
     <img src="<?= htmlspecialchars($login_banner_img) ?>" alt="" class="login-banner-img">
+    <?php endif; ?>
+    <?php if ($login_banner_overlay_color !== ''): ?>
+    <?php
+      $ov_color   = preg_replace('/[^#a-zA-Z0-9(),.\s%]/', '', $login_banner_overlay_color);
+      $ov_opacity = is_numeric($login_banner_overlay_opacity)
+          ? max(0, min(1, (float)$login_banner_overlay_opacity))
+          : 0.5;
+    ?>
+    <div class="login-banner-overlay" style="background:<?= $ov_color ?>;opacity:<?= $ov_opacity ?>;"></div>
     <?php endif; ?>
   </div>
 
