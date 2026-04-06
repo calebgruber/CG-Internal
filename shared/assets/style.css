@@ -833,13 +833,12 @@ tr:hover td { background: var(--bg); }
   min-height: 100vh;
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: right;
 }
 
 /* Left banner panel (3/4 width) — purely visual */
 .login-banner {
   flex: 3;
-  position: relative;
   background: var(--login-banner-bg, linear-gradient(135deg,#070e1f 0%,#0d2247 55%,#1e3a8a 100%));
   overflow: hidden;
   min-height: 100vh;
