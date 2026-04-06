@@ -195,7 +195,7 @@ try {
   // Auto-redirect after a brief moment to show the loading screen
   setTimeout(function () {
     window.location.href = <?= json_encode($safe_redirect) ?>;
-  }, 1600);
+  }, 3000);
 </script>
 
 </body>
