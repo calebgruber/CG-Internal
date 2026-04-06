@@ -12,14 +12,12 @@ require_once __DIR__ . '/../../shared/auth.php';
 $app_slug   = trim($_GET['app'] ?? '');
 $return_url = trim($_GET['return_url'] ?? '');
 
-// Read banner + login background from settings
-$login_banner_img  = '';
-$login_banner_bg   = '';
-$login_banner_text = '';
-$login_banner_sub  = '';
+// Read banner background from settings
+$login_banner_img = '';
+$login_banner_bg  = '';
 try {
     $rows = db()->query("SELECT `key`,`value` FROM settings WHERE `key` IN
-        ('login_banner','login_banner_text','login_banner_subtext','login_bg')")->fetchAll();
+        ('login_banner')")->fetchAll();
     $cfg  = array_column($rows, 'value', 'key');
     $raw_img = $cfg['login_banner'] ?? '';
     // login_banner can be an image URL (http/https) or a CSS gradient/color
@@ -28,8 +26,6 @@ try {
     } elseif ($raw_img !== '' && preg_match('/^[\w\s#(),.\/%\-+:\']+$/', $raw_img)) {
         $login_banner_bg = $raw_img;
     }
-    $login_banner_text = htmlspecialchars($cfg['login_banner_text'] ?? '');
-    $login_banner_sub  = htmlspecialchars($cfg['login_banner_subtext'] ?? '');
 } catch (Throwable $e) { /* ignore */ }
 
 // If already logged in → bounce to app launcher
@@ -108,31 +104,7 @@ function valid_return_url(string $url): string {
   <div class="login-banner">
     <?php if ($login_banner_img): ?>
     <img src="<?= htmlspecialchars($login_banner_img) ?>" alt="" class="login-banner-img">
-    <div class="login-banner-overlay"></div>
     <?php endif; ?>
-    <div class="login-banner-content">
-      <span class="material-symbols-outlined login-banner-logo">train</span>
-      <h1><?= $login_banner_text ?: htmlspecialchars(APP_NAME) ?></h1>
-      <?php if ($login_banner_sub): ?>
-      <p><?= $login_banner_sub ?></p>
-      <?php else: ?>
-      <p>Internal management platform</p>
-      <?php endif; ?>
-      <div class="login-banner-features">
-        <div class="login-banner-feature">
-          <span class="material-symbols-outlined">school</span>
-          <span>EDU Hub</span>
-        </div>
-        <div class="login-banner-feature">
-          <span class="material-symbols-outlined">train</span>
-          <span>WMATA Tracker</span>
-        </div>
-        <div class="login-banner-feature">
-          <span class="material-symbols-outlined">manage_accounts</span>
-          <span>ID Admin</span>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- ── Right form panel (1/4) ───────────────── -->

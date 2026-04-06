@@ -835,15 +835,11 @@ tr:hover td { background: var(--bg); }
   flex-direction: row;
 }
 
-/* Left banner panel (3/4 width) */
+/* Left banner panel (3/4 width) — purely visual */
 .login-banner {
   flex: 3;
   position: relative;
   background: var(--login-banner-bg, linear-gradient(135deg,#070e1f 0%,#0d2247 55%,#1e3a8a 100%));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   min-height: 100vh;
 }
@@ -855,69 +851,6 @@ tr:hover td { background: var(--bg); }
   height: 100%;
   object-fit: cover;
 }
-
-.login-banner-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-}
-
-.login-banner-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 3rem;
-  color: #fff;
-}
-
-.login-banner-content h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  margin-bottom: 1rem;
-}
-
-.login-banner-content p {
-  font-size: 1.0625rem;
-  color: rgba(255,255,255,0.7);
-  max-width: 440px;
-  line-height: 1.65;
-  margin: 0 auto 2rem;
-}
-
-.login-banner-logo {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  color: #60a5fa;
-  display: block;
-  filter: drop-shadow(0 0 24px rgba(96,165,250,0.4));
-}
-
-/* Feature pills below banner text */
-.login-banner-features {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: .25rem;
-}
-
-.login-banner-feature {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .35rem .75rem;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 9999px;
-  font-size: .8125rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.85);
-  backdrop-filter: blur(4px);
-}
-
-.login-banner-feature .material-symbols-outlined { font-size: .875rem; color: #93c5fd; }
 
 /* Right form panel (1/4 width) */
 .login-form-panel {
@@ -1047,8 +980,7 @@ tr:hover td { background: var(--bg); }
 
 @media (max-width: 768px) {
   .login-page { flex-direction: column; }
-  .login-banner { flex: none; min-height: 260px; }
-  .login-banner-features { display: none; }
+  .login-banner { flex: none; min-height: 200px; }
   .login-form-panel { max-width: 100%; min-height: auto; border-left: none; border-top: 1px solid var(--border); }
 }
 

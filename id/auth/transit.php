@@ -47,13 +47,10 @@ if ($safe_redirect === '') {
 if ($app_name === '') $app_name = 'the app';
 
 // Load banner settings (same as login.php)
-$login_banner_img  = '';
-$login_banner_bg   = '';
-$login_banner_text = '';
-$login_banner_sub  = '';
+$login_banner_img = '';
+$login_banner_bg  = '';
 try {
-    $rows = db()->query("SELECT `key`,`value` FROM settings WHERE `key` IN
-        ('login_banner','login_banner_text','login_banner_subtext')")->fetchAll();
+    $rows = db()->query("SELECT `key`,`value` FROM settings WHERE `key` = 'login_banner'")->fetchAll();
     $cfg  = array_column($rows, 'value', 'key');
     $raw  = $cfg['login_banner'] ?? '';
     if ($raw !== '' && (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://'))) {
@@ -61,8 +58,6 @@ try {
     } elseif ($raw !== '' && preg_match('/^[\w\s#(),.\/%\-+:\']+$/', $raw)) {
         $login_banner_bg = $raw;
     }
-    $login_banner_text = htmlspecialchars($cfg['login_banner_text'] ?? '');
-    $login_banner_sub  = htmlspecialchars($cfg['login_banner_subtext'] ?? '');
 } catch (Throwable $e) { /* ignore */ }
 ?>
 <!DOCTYPE html>
@@ -154,31 +149,7 @@ try {
   <div class="login-banner">
     <?php if ($login_banner_img): ?>
     <img src="<?= htmlspecialchars($login_banner_img) ?>" alt="" class="login-banner-img">
-    <div class="login-banner-overlay"></div>
     <?php endif; ?>
-    <div class="login-banner-content">
-      <span class="material-symbols-outlined login-banner-logo">train</span>
-      <h1><?= $login_banner_text ?: htmlspecialchars(APP_NAME) ?></h1>
-      <?php if ($login_banner_sub): ?>
-      <p><?= $login_banner_sub ?></p>
-      <?php else: ?>
-      <p>Internal management platform</p>
-      <?php endif; ?>
-      <div class="login-banner-features">
-        <div class="login-banner-feature">
-          <span class="material-symbols-outlined">school</span>
-          <span>EDU Hub</span>
-        </div>
-        <div class="login-banner-feature">
-          <span class="material-symbols-outlined">train</span>
-          <span>WMATA Tracker</span>
-        </div>
-        <div class="login-banner-feature">
-          <span class="material-symbols-outlined">manage_accounts</span>
-          <span>ID Admin</span>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- ── Right panel (1/4) ─────────────────────── -->

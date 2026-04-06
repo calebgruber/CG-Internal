@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $keys = [
-        'site_name','login_banner','login_banner_text','login_banner_subtext',
+        'site_name','login_banner',
         'mail_from','mail_from_name',
         'smtp_host','smtp_port','smtp_user','smtp_secure',
         'twilio_sid','twilio_from',
@@ -80,19 +80,7 @@ function sv(string $key, array $settings, string $default = ''): string {
       <input type="text" name="login_banner" class="form-control"
              placeholder="https://…/image.jpg  or  linear-gradient(135deg,#0f172a,#1e40af)"
              value="<?=sv('login_banner',$s)?>">
-      <div class="form-hint">Image URL fills the left panel. CSS gradient/color is used as the background.</div>
-    </div>
-    <div class="form-group">
-      <label>Login Banner Heading</label>
-      <input type="text" name="login_banner_text" class="form-control"
-             placeholder="<?= htmlspecialchars(APP_NAME) ?>"
-             value="<?=sv('login_banner_text',$s)?>">
-    </div>
-    <div class="form-group">
-      <label>Login Banner Subtext</label>
-      <input type="text" name="login_banner_subtext" class="form-control"
-             placeholder="Internal management platform"
-             value="<?=sv('login_banner_subtext',$s)?>">
+      <div class="form-hint">Image URL fills the left panel with a cover photo. A CSS gradient/color is used as the background.</div>
     </div>
     <div class="form-group">
       <label>Notification Email</label>
