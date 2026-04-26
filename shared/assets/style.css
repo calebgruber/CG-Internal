@@ -85,7 +85,7 @@ body {
   display: flex;
   min-height: 100vh;
   transition: background var(--transition), color var(--transition);
-   justify-content: right;
+  justify-content: flex-end;
 }
 
 a { color: var(--text-link); text-decoration: none; }
@@ -834,7 +834,7 @@ tr:hover td { background: var(--bg); }
   min-height: 100vh;
   display: flex;
   flex-direction: row;
-  justify-content: right;
+  justify-content: flex-end;
 }
 
 /* Left banner panel (3/4 width) — purely visual */
