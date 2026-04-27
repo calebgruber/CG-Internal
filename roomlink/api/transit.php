@@ -376,7 +376,9 @@ function fetch_mta_mnr_departures(string $stop_id, int $limit, string $api_key =
 
     $headers = "Accept: application/octet-stream\r\n";
     if ($api_key !== '') {
-        $headers .= "x-api-key: {$api_key}\r\n";
+        // Sanitize to prevent header injection — strip any CR/LF characters
+        $safe_key = preg_replace('/[\r\n]/', '', $api_key);
+        $headers .= "x-api-key: {$safe_key}\r\n";
     }
 
     $ctx = stream_context_create([
@@ -479,11 +481,13 @@ function fetch_njt_departures(string $njt_station_code, string $username, string
     // Step 2: Fetch departures
     $url = 'https://raildata.njtransit.com/api/TrainData/getTrainScheduleJSON'
          . '?station=' . urlencode($njt_station_code);
+    // Sanitize token to prevent header injection
+    $safe_token = preg_replace('/[\r\n]/', '', $token);
     $ctx = stream_context_create([
         'http' => [
             'timeout'       => 6,
             'ignore_errors' => true,
-            'header'        => "Authorization: Bearer {$token}\r\n"
+            'header'        => "Authorization: Bearer {$safe_token}\r\n"
                              . "Accept: application/json\r\n",
         ],
     ]);
