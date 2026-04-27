@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($keys as $k) {
             set_setting('rl_' . $k, trim($_POST[$k] ?? ''));
         }
-        // API keys only update if non-empty
-        foreach (['mta_api_key', 'njt_api_key'] as $k) {
+        // NJT credentials only update if non-empty
+        foreach (['njt_username', 'njt_password'] as $k) {
             $v = trim($_POST[$k] ?? '');
             if ($v !== '') set_setting('rl_' . $k, $v);
         }
@@ -111,14 +111,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* ── Reset all settings ── */
     if ($action === 'reset_settings') {
         $rl_keys = [
-            'rl_transit_refresh_sec', 'rl_eink_auto_refresh', 'rl_mta_api_key',
-            'rl_njt_api_key', 'rl_default_origin', 'rl_wled_global_ip',
+            'rl_transit_refresh_sec', 'rl_eink_auto_refresh', 'rl_njt_username',
+            'rl_njt_password', 'rl_default_origin', 'rl_wled_global_ip',
         ];
         $defaults = [
             'rl_transit_refresh_sec' => '30',
             'rl_eink_auto_refresh'   => '1',
-            'rl_mta_api_key'         => '',
-            'rl_njt_api_key'         => '',
+            'rl_njt_username'        => '',
+            'rl_njt_password'        => '',
             'rl_default_origin'      => '',
             'rl_wled_global_ip'      => '',
         ];
@@ -241,20 +241,27 @@ ui_page_header('Settings', 'Configure RoomLink — lights, transit, display');
   <form method="POST">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_general">
-    <?php ui_card_open('vpn_key', 'Transit API Keys', '', '#8b5cf6'); ?>
+    <?php ui_card_open('vpn_key', 'Transit API Credentials', '', '#8b5cf6'); ?>
     <div class="form-group">
-      <label>MTA API Key</label>
-      <input type="password" name="mta_api_key" class="form-control"
-             placeholder="Leave blank to keep current"
-             autocomplete="new-password">
-      <div class="form-hint">Used for MTA Metro-North GTFS-RT feed. Leave blank to use demo data.</div>
+      <label>MTA Metro-North</label>
+      <div class="form-hint" style="margin-top:0;margin-bottom:.5rem">
+        Metro-North GTFS-RT is fetched automatically — <strong>no API key required</strong>.
+      </div>
     </div>
     <div class="form-group">
-      <label>NJ Transit API Key</label>
-      <input type="password" name="njt_api_key" class="form-control"
+      <label>NJ Transit Username</label>
+      <input type="text" name="njt_username" class="form-control"
+             value="<?= htmlspecialchars(rl_setting('njt_username')) ?>"
+             placeholder="developer.njtransit.com username"
+             autocomplete="username">
+      <div class="form-hint">Your NJ Transit developer portal username.</div>
+    </div>
+    <div class="form-group">
+      <label>NJ Transit Password</label>
+      <input type="password" name="njt_password" class="form-control"
              placeholder="Leave blank to keep current"
              autocomplete="new-password">
-      <div class="form-hint">NJ Transit developer API key. Leave blank to use demo data.</div>
+      <div class="form-hint">Your NJ Transit developer portal password. Leave blank to keep the saved value.</div>
     </div>
     <div class="form-group">
       <label>Default Origin Station</label>
