@@ -402,48 +402,59 @@ function pad(n) { return String(n).padStart(2, '0'); }
 /* ── Countdown ── */
 function startCountdown(secs) {
   clearInterval(countdownHandle);
-  let remaining = secs;
+  let remaining = Math.max(10, secs || REFRESH_SEC);  // never less than 10s
   const el = document.getElementById('refresh-countdown');
-  function tick() {
+  el.textContent = `Refresh in ${remaining}s`;
+  countdownHandle = setInterval(function tick() {
+    remaining--;
     el.textContent = `Refresh in ${remaining}s`;
     if (remaining <= 0) {
       clearInterval(countdownHandle);
       fetchDepartures(currentStation);
-      return;
     }
-    remaining--;
-  }
-  tick();
-  countdownHandle = setInterval(tick, 1000);
+  }, 1000);
 }
 
 /* ── Live status ── */
-function setLiveStatus(state, source) {
+function setLiveStatus(state, source, errorDetail) {
   const dot   = document.getElementById('live-dot');
   const src   = document.getElementById('source-badge');
   const colors = { live:'#10b981', loading:'#f59e0b', error:'#ef4444' };
   const c = colors[state] || '#10b981';
   dot.style.background = c;
   document.getElementById('live-indicator').style.color = c;
-  if (source) {
+  if (source !== null) {
     src.style.display = 'inline-flex';
-    src.className = 'source-badge ' + source;
-    src.textContent = source === 'live' ? '⚡ Live Data' : '⚠ Demo Data';
+    if (source === 'live') {
+      src.className = 'source-badge live';
+      src.textContent = '⚡ Live Data';
+      src.title = '';
+    } else {
+      src.className = 'source-badge demo';
+      src.textContent = '⚠ No Live Data';
+      src.title = errorDetail || '';
+    }
   }
 }
 
 /* ── Fetch departures ── */
 async function fetchDepartures(station) {
-  setLiveStatus('loading', null);
+  setLiveStatus('loading', null, '');
   try {
     const resp = await fetch(`${API_BASE}&station=${encodeURIComponent(station)}`);
     const data = await resp.json();
     if (!data.ok) throw new Error('API error');
-    renderBoard(data.departures || []);
-    setLiveStatus('live', data.source || 'live');
-    startCountdown(data.refresh_sec || REFRESH_SEC);
+    const isLive = data.source === 'live';
+    if (isLive) {
+      renderBoard(data.departures || []);
+      setLiveStatus('live', 'live', '');
+    } else {
+      renderApiError(data.error_detail || 'Could not load live departures.');
+      setLiveStatus('error', 'error', data.error_detail || '');
+    }
+    startCountdown(Math.max(10, data.refresh_sec || REFRESH_SEC));
   } catch(e) {
-    setLiveStatus('error', null);
+    setLiveStatus('error', 'error', 'Request failed – check server logs.');
     renderError();
     startCountdown(REFRESH_SEC);
   }
@@ -470,6 +481,16 @@ function renderError() {
       <span class="material-symbols-outlined" style="color:#ef4444">wifi_off</span>
       <p style="color:#ef4444">Could not load departures. Retrying…</p>
     </div>`;
+  document.getElementById('board-empty').style.display = 'none';
+}
+
+function renderApiError(msg) {
+  document.getElementById('departure-board').innerHTML = `
+    <div class="board-loading">
+      <span class="material-symbols-outlined" style="color:#f59e0b">warning</span>
+      <p style="color:#f59e0b">${escHtml(msg)}</p>
+    </div>`;
+  document.getElementById('board-empty').style.display = 'none';
 }
 
 /* ── Build train card HTML ── */

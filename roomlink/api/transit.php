@@ -68,10 +68,9 @@ if ($station_cfg['agency'] === 'MNR') {
     }
 }
 
-/* ── Demo / fallback data ── */
-if (empty($departures)) {
-    $departures = generate_demo_departures($station);
-    $source = 'demo';
+/* ── No demo fallback — return real data or nothing ── */
+if (empty($departures) && $source !== 'live') {
+    $source = 'error';
 }
 
 /* ── Sort by time_24 ── */
@@ -86,7 +85,7 @@ echo json_encode([
     'station_label' => $station_cfg['label'],
     'departures'    => $departures,
     'fetched_at'    => (new DateTime())->format(DateTime::ATOM),
-    'refresh_sec'   => (int) rl_setting('transit_refresh_sec', '30'),
+    'refresh_sec'   => max(10, (int) rl_setting('transit_refresh_sec', '30')),
 ]);
 exit;
 
@@ -594,19 +593,35 @@ function njt_get_token(string $username, string $password, string &$error_out = 
 }
 
 function njt_line_info(string $line_code): array {
+    // Official colors from NJT public GTFS routes.txt route_color field
     static $lines = [
-        'NEC'  => ['name' => 'Northeast Corridor',    'color' => '#DA291C'],
-        'M&E'  => ['name' => 'Morris & Essex Lines',  'color' => '#00A550'],
-        'NJCL' => ['name' => 'North Jersey Coast',    'color' => '#0039A6'],
-        'ML'   => ['name' => 'Main Line',              'color' => '#F77F00'],
-        'BCL'  => ['name' => 'Bergen County Line',    'color' => '#F77F00'],
-        'PVL'  => ['name' => 'Pascack Valley Line',   'color' => '#7B3F00'],
-        'RVL'  => ['name' => 'Raritan Valley Line',   'color' => '#FFCC00'],
-        'MCB'  => ['name' => 'Montclair-Boonton',     'color' => '#006CB7'],
-        'SLS'  => ['name' => 'Atlantic City Line',    'color' => '#9B5EA2'],
+        'NEC'  => ['name' => 'Northeast Corridor',     'color' => '#D52B1E'],
+        'M&E'  => ['name' => 'Morris & Essex Lines',   'color' => '#00A651'],
+        'NJCL' => ['name' => 'North Jersey Coast Line','color' => '#004B8D'],
+        'ML'   => ['name' => 'Main Line',              'color' => '#F7941D'],
+        'BCL'  => ['name' => 'Bergen County Line',     'color' => '#F7941D'],
+        'PVL'  => ['name' => 'Pascack Valley Line',    'color' => '#582C83'],
+        'RVL'  => ['name' => 'Raritan Valley Line',    'color' => '#FFC72C'],
+        'MCB'  => ['name' => 'Montclair-Boonton Line', 'color' => '#006DB7'],
+        'ACL'  => ['name' => 'Atlantic City Rail Line','color' => '#9B2743'],
+        'SLS'  => ['name' => 'Atlantic City Rail Line','color' => '#9B2743'],
     ];
     $up = strtoupper($line_code);
-    return $lines[$up] ?? ['name' => 'NJ Transit', 'color' => '#003087'];
+    if (isset($lines[$up])) return $lines[$up];
+
+    // Keyword fallback for full-name line codes the NJT API might return
+    $lo = strtolower($line_code);
+    if (str_contains($lo, 'northeast') || str_contains($lo, 'corridor')) return $lines['NEC'];
+    if (str_contains($lo, 'morris')    || str_contains($lo, 'essex'))    return $lines['M&E'];
+    if (str_contains($lo, 'coast')     || str_contains($lo, 'njcl'))     return $lines['NJCL'];
+    if (str_contains($lo, 'bergen'))                                      return $lines['BCL'];
+    if (str_contains($lo, 'main'))                                        return $lines['ML'];
+    if (str_contains($lo, 'pascack'))                                     return $lines['PVL'];
+    if (str_contains($lo, 'raritan'))                                     return $lines['RVL'];
+    if (str_contains($lo, 'montclair') || str_contains($lo, 'boonton'))  return $lines['MCB'];
+    if (str_contains($lo, 'atlantic')  || str_contains($lo, 'city'))     return $lines['ACL'];
+
+    return ['name' => 'NJ Transit', 'color' => '#003087'];
 }
 
 function njt_parse_departures(array $data, int $limit): array {
@@ -793,98 +808,3 @@ function amtrak_route_color(string $route_name): string {
     return '#003189'; // Default Amtrak navy
 }
 
-
-function generate_demo_departures(string $station): array {
-    $now = time();
-
-    $by_station = [
-        'stamford' => [
-            ['offset' =>  3, 'dest' => 'Grand Central Terminal', 'track' => '1', 'agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'boarding', 'delay' => 0],
-            ['offset' =>  9, 'dest' => 'New Haven',              'track' => '2', 'agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 18, 'dest' => 'Grand Central Terminal', 'track' => '1', 'agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 24, 'dest' => 'Bridgeport',             'track' => '2', 'agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'delayed',  'delay' => 7],
-            ['offset' => 35, 'dest' => 'Grand Central Terminal', 'track' => '1', 'agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 52, 'dest' => 'New Haven',              'track' => '2', 'agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'ontime',   'delay' => 0],
-        ],
-        'grand-central' => [
-            ['offset' =>  4, 'dest' => 'Stamford',               'track' => '21','agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'ontime',   'delay' => 0],
-            ['offset' =>  7, 'dest' => 'White Plains',           'track' => '33','agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'boarding', 'delay' => 0],
-            ['offset' => 11, 'dest' => 'Poughkeepsie',           'track' => '28','agency' => 'MNR', 'line' => 'Hudson Line',    'color' => '#009B3A', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 19, 'dest' => 'New Haven',              'track' => '22','agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'delayed',  'delay' => 5],
-            ['offset' => 23, 'dest' => 'Southeast',              'track' => '34','agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 30, 'dest' => 'Croton-Harmon',          'track' => '27','agency' => 'MNR', 'line' => 'Hudson Line',    'color' => '#009B3A', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 38, 'dest' => 'Stamford',               'track' => '23','agency' => 'MNR', 'line' => 'New Haven Line', 'color' => '#0057A9', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 45, 'dest' => 'North White Plains',     'track' => '35','agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'delayed',  'delay' => 3],
-        ],
-        'white-plains' => [
-            ['offset' =>  5, 'dest' => 'Grand Central Terminal', 'track' => '1', 'agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 14, 'dest' => 'Southeast',              'track' => '2', 'agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 22, 'dest' => 'Grand Central Terminal', 'track' => '1', 'agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'boarding', 'delay' => 0],
-            ['offset' => 31, 'dest' => 'Wassaic',                'track' => '2', 'agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'delayed',  'delay' => 6],
-            ['offset' => 44, 'dest' => 'Grand Central Terminal', 'track' => '1', 'agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 58, 'dest' => 'North White Plains',     'track' => '2', 'agency' => 'MNR', 'line' => 'Harlem Line',    'color' => '#5B2C8D', 'st' => 'ontime',   'delay' => 0],
-        ],
-        'penn-station' => [
-            ['offset' =>  3, 'dest' => 'Trenton',                'track' => '3', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'boarding', 'delay' => 0],
-            ['offset' =>  8, 'dest' => 'Long Branch',            'track' => '6', 'agency' => 'NJT', 'line' => 'North Jersey Coast',  'color' => '#0039A6', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 15, 'dest' => 'Dover',                  'track' => '9', 'agency' => 'NJT', 'line' => 'Morris & Essex',      'color' => '#00A550', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 21, 'dest' => 'Metropark',              'track' => '4', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'delayed',  'delay' => 8],
-            ['offset' => 28, 'dest' => 'Bay Head',               'track' => '7', 'agency' => 'NJT', 'line' => 'North Jersey Coast',  'color' => '#0039A6', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 35, 'dest' => 'Princeton Junction',     'track' => '3', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 42, 'dest' => 'Gladstone',              'track' => '9', 'agency' => 'NJT', 'line' => 'Morris & Essex',      'color' => '#00A550', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 49, 'dest' => 'Trenton',                'track' => '4', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'delayed',  'delay' => 12],
-        ],
-        'metropark' => [
-            ['offset' =>  6, 'dest' => 'New York Penn Station',  'track' => '1', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 13, 'dest' => 'Trenton',                'track' => '2', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 24, 'dest' => 'New York Penn Station',  'track' => '1', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'boarding', 'delay' => 0],
-            ['offset' => 37, 'dest' => 'Princeton Junction',     'track' => '2', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'delayed',  'delay' => 5],
-            ['offset' => 48, 'dest' => 'New York Penn Station',  'track' => '1', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 60, 'dest' => 'Trenton',                'track' => '2', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'ontime',   'delay' => 0],
-        ],
-        'amtrak-penn' => [
-            ['offset' =>  5, 'dest' => 'Acela',                  'track' => '',  'agency' => 'AMTK', 'line' => 'Train 2154', 'color' => '#CC0000', 'st' => 'boarding', 'delay' => 0],
-            ['offset' => 12, 'dest' => 'Northeast Regional',     'track' => '',  'agency' => 'AMTK', 'line' => 'Train 171',  'color' => '#CC0000', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 21, 'dest' => 'Empire Service',         'track' => '',  'agency' => 'AMTK', 'line' => 'Train 53',   'color' => '#003189', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 30, 'dest' => 'Acela',                  'track' => '',  'agency' => 'AMTK', 'line' => 'Train 2156', 'color' => '#CC0000', 'st' => 'delayed',  'delay' => 8],
-            ['offset' => 44, 'dest' => 'Northeast Regional',     'track' => '',  'agency' => 'AMTK', 'line' => 'Train 173',  'color' => '#CC0000', 'st' => 'ontime',   'delay' => 0],
-            ['offset' => 58, 'dest' => 'Carolinian',             'track' => '',  'agency' => 'AMTK', 'line' => 'Train 79',   'color' => '#003189', 'st' => 'ontime',   'delay' => 0],
-        ],
-    ];
-
-    $schedule = $by_station[$station] ?? $by_station['grand-central'];
-    $deps     = [];
-
-    foreach ($schedule as $i => $s) {
-        $ts = $now + $s['offset'] * 60;
-        $status_label = match($s['st']) {
-            'ontime'   => 'On Time',
-            'delayed'  => 'DELAYED +' . $s['delay'] . 'm',
-            'boarding' => 'BOARDING',
-            'cancelled'=> 'CANCELLED',
-            default    => 'On Time',
-        };
-        $deps[] = [
-            'id'               => 'demo_' . $i . '_' . $ts,
-            'track'            => $s['track'],
-            'time'             => date('g:i', $ts),
-            'time_24'          => date('H:i', $ts),
-            'destination'      => $s['dest'],
-            'agency'           => $s['agency'],
-            'agency_name'      => match($s['agency']) {
-                'MNR'  => 'Metro-North',
-                'NJT'  => 'NJ Transit',
-                'AMTK' => 'Amtrak',
-                default=> $s['agency'],
-            },
-            'agency_color'     => $s['color'],
-            'agency_text_color'=> '#ffffff',
-            'line_name'        => $s['line'],
-            'status'           => $status_label,
-            'status_type'      => $s['st'],
-            'delay_minutes'    => $s['delay'],
-        ];
-    }
-
-    return $deps;
-}
