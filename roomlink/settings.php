@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($keys as $k) {
             set_setting('rl_' . $k, trim($_POST[$k] ?? ''));
         }
-        // NJT and MTA credentials only update if non-empty
-        foreach (['njt_username', 'njt_password', 'mta_api_key'] as $k) {
+        // NJT credentials only update if non-empty
+        foreach (['njt_username', 'njt_password'] as $k) {
             $v = trim($_POST[$k] ?? '');
             if ($v !== '') set_setting('rl_' . $k, $v);
         }
@@ -112,14 +112,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'reset_settings') {
         $rl_keys = [
             'rl_transit_refresh_sec', 'rl_eink_auto_refresh', 'rl_njt_username',
-            'rl_njt_password', 'rl_default_origin', 'rl_wled_global_ip', 'rl_mta_api_key',
+            'rl_njt_password', 'rl_default_origin', 'rl_wled_global_ip',
         ];
         $defaults = [
             'rl_transit_refresh_sec' => '30',
             'rl_eink_auto_refresh'   => '1',
             'rl_njt_username'        => '',
             'rl_njt_password'        => '',
-            'rl_mta_api_key'         => '',
             'rl_default_origin'      => '',
             'rl_wled_global_ip'      => '',
         ];
@@ -243,17 +242,6 @@ ui_page_header('Settings', 'Configure RoomLink — lights, transit, display');
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_general">
     <?php ui_card_open('vpn_key', 'Transit API Credentials', '', '#8b5cf6'); ?>
-    <div class="form-group">
-      <label>MTA Metro-North API Key</label>
-      <input type="text" name="mta_api_key" class="form-control"
-             value="<?= htmlspecialchars(rl_setting('mta_api_key')) ?>"
-             placeholder="Get a free key at developer.mta.info"
-             autocomplete="off">
-      <div class="form-hint">
-        Required for live Metro-North GTFS-RT data. Register free at
-        <a href="https://developer.mta.info" target="_blank" rel="noopener">developer.mta.info</a>.
-      </div>
-    </div>
     <div class="form-group">
       <label>NJ Transit Username</label>
       <input type="text" name="njt_username" class="form-control"

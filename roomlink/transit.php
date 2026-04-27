@@ -213,6 +213,10 @@ ui_card_open('departure_board', 'Departures', $status_bar_html, '#0E71B3');
   0%,100% { opacity:1; transform:scale(1); }
   50%     { opacity:.5; transform:scale(1.4); }
 }
+@keyframes flash {
+  0%,100% { opacity:1; }
+  50%     { opacity:.45; }
+}
 
 .train-card {
   display: flex;
@@ -220,9 +224,13 @@ ui_card_open('departure_board', 'Departures', $status_bar_html, '#0E71B3');
   border-radius: 10px;
   overflow: hidden;
   height: 72px;
-  animation: slideInCard .25s ease forwards;
-  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
   flex-shrink: 0;
+  background: #0d1f2d;
+  border-left: 5px solid #3b82f6; /* overridden per-card via inline style */
+}
+.train-card.animate-in {
+  animation: slideInCard .25s ease forwards;
 }
 
 /* Time section */
@@ -344,36 +352,35 @@ ui_card_open('departure_board', 'Departures', $status_bar_html, '#0E71B3');
 <script>
 const REFRESH_SEC = <?= $refresh_sec ?>;
 const API_BASE    = '<?= APP_URL ?>/roomlink/api/transit?json=1&limit=14';
-const ICON_BASE   = '<?= APP_URL ?>/roomlink/icon?name=';
+const ICON_DIR    = '<?= APP_URL ?>/roomlink/assets/icons/';
 
 let currentStation   = 'grand-central';
 let countdownHandle  = null;
+let isFirstRender    = true;
 
 /**
- * Map agency code → icon file name (MTA, NJT, AMTK, LIRR).
- * These correspond to roomlink/assets/icons/<NAME>.icon files.
+ * Map agency code → PNG file base name in roomlink/assets/icons/.
+ * Files: mta.png, njt.png, amtk.png, lirr.png
  */
 const AGENCY_ICON = {
-  MNR:  'MTA',
-  MTA:  'MTA',
-  NJT:  'NJT',
-  AMT:  'AMTK',
-  AMTK: 'AMTK',
-  LIRR: 'LIRR',
+  MNR:  'mta',
+  MTA:  'mta',
+  NJT:  'njt',
+  AMT:  'amtk',
+  AMTK: 'amtk',
+  LIRR: 'lirr',
 };
 
 /**
- * Build the agency logo section HTML.
- * Uses an <img> pointing to the icon server.
- * Falls back to a text badge if the image fails to load.
+ * Build the agency logo <img> HTML.
+ * Falls back to a text badge if the PNG is missing.
  */
 function agencyLogo(agency) {
-  const iconName = AGENCY_ICON[agency] || String(agency || '?').toUpperCase();
-  const src = ICON_BASE + encodeURIComponent(iconName);
-  // onerror swaps to a simple text badge — iconName is always safe alphanumeric
-  return `<img src="${src}" alt="${iconName}"
+  const slug = AGENCY_ICON[agency] || String(agency || '').toLowerCase();
+  const src  = ICON_DIR + slug + '.png';
+  return `<img src="${src}" alt="${slug.toUpperCase()}"
     style="width:44px;height:44px;object-fit:contain;display:block;"
-    onerror="this.outerHTML='&lt;span class=&quot;agency-logo-text&quot;&gt;${iconName}&lt;/span&gt;'"
+    onerror="this.outerHTML='<span class=\\"agency-logo-text\\">' + this.alt + '</span>'"
     loading="lazy">`;
 }
 
@@ -448,10 +455,12 @@ function renderBoard(deps) {
   if (!deps.length) {
     board.innerHTML = '';
     empty.style.display = 'flex';
+    isFirstRender = false;
     return;
   }
   empty.style.display = 'none';
   board.innerHTML = deps.map((d, i) => buildCard(d, i)).join('');
+  isFirstRender = false;
 }
 
 function renderError() {
@@ -464,11 +473,13 @@ function renderError() {
 
 /* ── Build train card HTML ── */
 function buildCard(d, idx) {
-  const color     = esc(d.agency_color || '#3b82f6');
-  const timeParts = d.time.split(':');
-  const hm = timeParts.slice(0, 2).join(':');
-  const h24 = d.time_24 ? parseInt(d.time_24.split(':')[0]) : 0;
-  const ampm = h24 >= 12 ? 'PM' : 'AM';
+  const color      = esc(d.agency_color || '#3b82f6');
+  const timeParts  = d.time.split(':');
+  const hm         = timeParts.slice(0, 2).join(':');
+  const h24        = d.time_24 ? parseInt(d.time_24.split(':')[0]) : 0;
+  const ampm       = h24 >= 12 ? 'PM' : 'AM';
+  const animClass  = isFirstRender ? ' animate-in' : '';
+  const animDelay  = isFirstRender ? `animation-delay:${idx * 0.04}s` : '';
 
   const statusClass = {
     ontime:    'status-ontime',
@@ -480,15 +491,15 @@ function buildCard(d, idx) {
   const track = d.track ? `<span class="train-track">Track ${escHtml(d.track)}</span>` : '';
 
   return `
-<div class="train-card" style="background:${color};animation-delay:${idx*0.04}s">
-  <div class="train-time-section">
+<div class="train-card${animClass}" style="border-left-color:${color};${animDelay}">
+  <div class="train-time-section" style="background:${color}28">
     <span class="train-time-hm">${escHtml(hm)}</span>
     <span class="train-time-ampm">${ampm}</span>
   </div>
   <div class="train-info-section">
     <div class="train-destination">${escHtml(d.destination)}</div>
     <div class="train-meta">
-      ${d.line_name ? `<span class="train-line-name">${escHtml(d.line_name)}</span>` : ''}
+      ${d.line_name ? `<span class="train-line-name" style="color:${color}">${escHtml(d.line_name)}</span>` : ''}
       ${track}
       <span class="train-status ${statusClass}">${escHtml(d.status)}</span>
     </div>
@@ -519,6 +530,7 @@ document.querySelectorAll('.station-tab').forEach(btn => {
     document.querySelectorAll('.station-tab').forEach(b => b.classList.remove('active'));
     this.classList.add('active');
     currentStation = this.dataset.station;
+    isFirstRender  = true;
     clearInterval(countdownHandle);
     document.getElementById('departure-board').innerHTML =
       `<div class="board-loading">

@@ -41,8 +41,7 @@ $departures = [];
 $source = 'demo';
 
 if ($station_cfg['agency'] === 'MNR') {
-    $mta_key = rl_setting('mta_api_key', '');
-    $live = fetch_mta_mnr_departures($station_cfg['stop_id'], $limit, $mta_key);
+    $live = fetch_mta_mnr_departures($station_cfg['stop_id'], $limit);
     if (!empty($live)) {
         $departures = $live;
         $source = 'live';
@@ -368,24 +367,17 @@ function mnr_stop_name(string $stop_id): string {
 
 /* ═══════════════════════════════════════════════════
    MTA METRO-NORTH GTFS-RT FETCHER
-   An API key (x-api-key) is required — obtain one free
-   at developer.mta.info and save it in RoomLink Settings.
+   The MTA GTFS-RT feed for Metro-North is publicly accessible
+   without an API key at the endpoint below.
    ═══════════════════════════════════════════════════ */
-function fetch_mta_mnr_departures(string $stop_id, int $limit, string $api_key = ''): array {
+function fetch_mta_mnr_departures(string $stop_id, int $limit): array {
     $feed_url = 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/mnr%2Fgtfs-mnr';
-
-    $headers = "Accept: application/octet-stream\r\n";
-    if ($api_key !== '') {
-        // Sanitize to prevent header injection — strip any CR/LF characters
-        $safe_key = preg_replace('/[\r\n]/', '', $api_key);
-        $headers .= "x-api-key: {$safe_key}\r\n";
-    }
 
     $ctx = stream_context_create([
         'http' => [
-            'timeout'       => 8,
+            'timeout'       => 10,
             'ignore_errors' => true,
-            'header'        => $headers,
+            'header'        => "Accept: application/octet-stream\r\n",
         ],
     ]);
     $raw = @file_get_contents($feed_url, false, $ctx);
