@@ -19,10 +19,10 @@ ui_head('Transit Board – RoomLink', 'roomlink', 'RoomLink', 'home_iot_device')
 ui_sidebar('RoomLink', 'home_iot_device', $nav_items);
 ui_page_header('Transit Departure Board', 'Live departures');
 ?>
-<div class="page-body transit-page">
+<div class="page-body">
 
 <!-- ══════════════════════════════════════════════════
-     STATION TABS
+     STATION TABS  (kept outside the card — same look as before)
 ════════════════════════════════════════════════════ -->
 <div class="station-tabs-wrap">
   <div class="station-tabs">
@@ -45,9 +45,11 @@ ui_page_header('Transit Departure Board', 'Live departures');
 </div>
 
 <!-- ══════════════════════════════════════════════════
-     STATUS BAR
+     CARD WRAPPER  (puts board back into the standard UI)
 ════════════════════════════════════════════════════ -->
-<div class="transit-status-bar">
+<?php
+$status_bar_html = '
+<div class="transit-status-bar" style="margin-left:auto">
   <div class="transit-status-left">
     <span id="live-indicator" class="live-badge">
       <span id="live-dot" class="live-dot"></span>
@@ -59,10 +61,12 @@ ui_page_header('Transit Departure Board', 'Live departures');
     <span id="source-badge" class="source-badge" style="display:none"></span>
     <span id="refresh-countdown" class="refresh-text"></span>
   </div>
-</div>
+</div>';
+ui_card_open('departure_board', 'Departures', $status_bar_html, '#0E71B3');
+?>
 
 <!-- ══════════════════════════════════════════════════
-     DEPARTURE CARDS
+     DEPARTURE CARDS  (rendered inside the card body)
 ════════════════════════════════════════════════════ -->
 <div id="departure-board" class="departure-board">
   <div class="board-loading">
@@ -76,14 +80,14 @@ ui_page_header('Transit Departure Board', 'Live departures');
   <p>No upcoming departures found.</p>
 </div>
 
+<?php ui_card_close(); ?>
+
 </div><!-- .page-body -->
 
 <style>
 /* ── Station Tabs ─────────────────────────────────── */
-.transit-page { padding-top: 0 !important; }
-
 .station-tabs-wrap {
-  margin: -1rem -1.5rem 0;
+  margin: -1.5rem -1.5rem 1rem;
   background: #071323;
   border-bottom: 2px solid #1e3a5f;
   overflow-x: auto;
@@ -100,8 +104,8 @@ ui_page_header('Transit Departure Board', 'Live departures');
   display: flex;
   align-items: center;
   gap: .5rem;
-  padding: 1.1rem 1.75rem;
-  font-size: 1rem;
+  padding: 1rem 1.5rem;
+  font-size: .9375rem;
   font-weight: 700;
   color: #64748b;
   background: transparent;
@@ -113,7 +117,7 @@ ui_page_header('Transit Departure Board', 'Live departures');
   letter-spacing: .01em;
 }
 .station-tab .material-symbols-outlined {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   opacity: .7;
 }
 .station-tab:hover {
@@ -125,37 +129,34 @@ ui_page_header('Transit Departure Board', 'Live departures');
   border-bottom-color: #38bdf8;
   background: rgba(56,189,248,.06);
 }
-.station-tab.active .material-symbols-outlined {
-  opacity: 1;
-}
+.station-tab.active .material-symbols-outlined { opacity: 1; }
 
-/* ── Status Bar ───────────────────────────────────── */
+/* ── Status Bar (inside card header actions) ─────── */
 .transit-status-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: .85rem 0;
-  margin-bottom: .5rem;
+  gap: .75rem;
+  flex-wrap: wrap;
 }
 .transit-status-left,
 .transit-status-right {
   display: flex;
   align-items: center;
-  gap: .75rem;
+  gap: .5rem;
 }
 
 .live-badge {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
-  font-size: .78rem;
+  gap: .35rem;
+  font-size: .72rem;
   font-weight: 800;
   color: #10b981;
   letter-spacing: .06em;
 }
 .live-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #10b981;
   animation: pulseDot 2s ease-in-out infinite;
@@ -164,16 +165,16 @@ ui_page_header('Transit Departure Board', 'Live departures');
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--text-muted);
-  font-size: .9rem;
+  font-size: .82rem;
 }
 .refresh-text {
-  font-size: .75rem;
+  font-size: .72rem;
   color: var(--text-muted);
 }
 .source-badge {
-  font-size: .7rem;
+  font-size: .68rem;
   font-weight: 700;
-  padding: .15rem .5rem;
+  padding: .12rem .45rem;
   border-radius: 999px;
   border: 1px solid;
 }
@@ -184,7 +185,7 @@ ui_page_header('Transit Departure Board', 'Live departures');
 .departure-board {
   display: flex;
   flex-direction: column;
-  gap: .65rem;
+  gap: .6rem;
 }
 
 .board-loading,
@@ -193,20 +194,20 @@ ui_page_header('Transit Departure Board', 'Live departures');
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3.5rem 2rem;
-  color: #475569;
+  padding: 3rem 2rem;
+  color: var(--text-muted);
   gap: .75rem;
-  background: #0d1b2a;
-  border-radius: 12px;
-  border: 1px solid #1e3a5f;
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
 }
 .board-loading .material-symbols-outlined,
-.board-empty  .material-symbols-outlined { font-size: 2.5rem; }
+.board-empty  .material-symbols-outlined { font-size: 2.25rem; opacity: .5; }
 
 /* ── Train Card ───────────────────────────────────── */
 @keyframes slideInCard {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes pulseDot {
   0%,100% { opacity:1; transform:scale(1); }
@@ -216,36 +217,36 @@ ui_page_header('Transit Departure Board', 'Live departures');
 .train-card {
   display: flex;
   align-items: stretch;
-  border-radius: 14px;
+  border-radius: 10px;
   overflow: hidden;
-  height: 74px;
-  animation: slideInCard .3s ease forwards;
-  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  height: 72px;
+  animation: slideInCard .25s ease forwards;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
   flex-shrink: 0;
 }
 
-/* Time section: darker shade + right-pointing arrow via clip-path */
+/* Time section */
 .train-time-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 32px 0 18px;
+  padding: 0 28px 0 16px;
   flex-shrink: 0;
-  background: rgba(0,0,0,.32);
-  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%);
-  min-width: 110px;
+  background: rgba(0,0,0,.28);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%);
+  min-width: 105px;
   line-height: 1;
 }
 .train-time-hm {
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: #fff;
   font-variant-numeric: tabular-nums;
   letter-spacing: .01em;
 }
 .train-time-ampm {
-  font-size: .68rem;
+  font-size: .65rem;
   font-weight: 600;
   color: rgba(255,255,255,.65);
   text-transform: uppercase;
@@ -259,11 +260,11 @@ ui_page_header('Transit Departure Board', 'Live departures');
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 14px 0 8px;
+  padding: 0 12px 0 8px;
   min-width: 0;
 }
 .train-destination {
-  font-size: 1.08rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
@@ -274,78 +275,110 @@ ui_page_header('Transit Departure Board', 'Live departures');
 .train-meta {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: .45rem;
   margin-top: 3px;
   flex-wrap: wrap;
 }
 .train-line-name {
-  font-size: .72rem;
+  font-size: .7rem;
   color: rgba(255,255,255,.72);
   font-weight: 500;
 }
 .train-track {
-  font-size: .7rem;
+  font-size: .68rem;
   font-weight: 700;
   color: rgba(255,255,255,.55);
-  background: rgba(0,0,0,.2);
-  padding: .1rem .4rem;
+  background: rgba(0,0,0,.22);
+  padding: .1rem .38rem;
   border-radius: 4px;
 }
 .train-status {
-  font-size: .72rem;
+  font-size: .68rem;
   font-weight: 700;
-  padding: .1rem .45rem;
+  padding: .1rem .42rem;
   border-radius: 4px;
 }
-.status-ontime   { background: rgba(16,185,129,.2); color: #6ee7b7; }
-.status-delayed  { background: rgba(251,191,36,.2);  color: #fde68a; }
-.status-boarding { background: rgba(52,211,153,.2);  color: #6ee7b7; animation: pulseDot 1.5s ease-in-out infinite; }
-.status-cancelled{ background: rgba(248,113,113,.2); color: #fca5a5; text-decoration: line-through; }
+.status-ontime    { background: rgba(16,185,129,.2);  color: #6ee7b7; }
+.status-delayed   { background: rgba(251,191,36,.2);  color: #fde68a; }
+.status-boarding  { background: rgba(52,211,153,.2);  color: #6ee7b7;
+                    animation: flash 1.2s ease-in-out infinite; }
+.status-cancelled { background: rgba(248,113,113,.2); color: #fca5a5;
+                    text-decoration: line-through; }
 
-/* Agency badge section */
+/* Agency logo section (right end of card) */
 .train-agency-section {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 14px;
+  padding: 0 12px;
   flex-shrink: 0;
+  background: rgba(0,0,0,.18);
 }
-.agency-badge {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.15);
-  border: 2px solid rgba(255,255,255,.35);
+.agency-logo {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  font-weight: 900;
-  font-size: .62rem;
-  color: #fff;
-  line-height: 1.2;
-  letter-spacing: .02em;
-  text-transform: uppercase;
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.32);
   flex-shrink: 0;
+  overflow: hidden;
 }
+.agency-logo svg { width: 42px; height: 42px; }
 </style>
 
 <script>
 const REFRESH_SEC = <?= $refresh_sec ?>;
-const API_BASE    = '<?= APP_URL ?>/roomlink/api/transit?json=1&limit=12';
+const API_BASE    = '<?= APP_URL ?>/roomlink/api/transit?json=1&limit=14';
 
 let currentStation   = 'grand-central';
-let allDepartures    = [];
 let countdownHandle  = null;
-let refreshHandle    = null;
 
-/* ── Agency badge text ── */
-const AGENCY_LABELS = {
-  MNR: 'METRO\nNORTH',
-  NJT: 'NJ\nTRANSIT',
-  AMT: 'AMTRAK',
-  LIRR:'LIRR',
+/* ── Inline SVG agency logos ── */
+const AGENCY_SVG = {
+  MNR: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+    <rect width="42" height="42" rx="6" fill="#003087"/>
+    <text x="21" y="16" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="900" font-size="9.5" letter-spacing=".5">METRO</text>
+    <text x="21" y="27" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="900" font-size="9.5" letter-spacing=".5">NORTH</text>
+    <rect x="6" y="30" width="30" height="3" rx="1.5" fill="#e31837"/>
+  </svg>`,
+  NJT: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+    <rect width="42" height="42" rx="6" fill="#003087"/>
+    <text x="21" y="17" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="900" font-size="13" letter-spacing="1">NJ</text>
+    <rect x="6" y="21" width="30" height="2.5" rx="1.25" fill="#e31837"/>
+    <text x="21" y="33" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="700" font-size="7.5" letter-spacing=".5">TRANSIT</text>
+  </svg>`,
+  AMT: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+    <rect width="42" height="42" rx="6" fill="#1D6BAE"/>
+    <!-- Amtrak-style arrow -->
+    <polygon points="21,7 29,21 24,21 24,35 18,35 18,21 13,21" fill="white" opacity=".95"/>
+    <text x="21" y="40" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="800" font-size="6.5" letter-spacing=".8">AMTRAK</text>
+  </svg>`,
+  LIRR: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+    <rect width="42" height="42" rx="6" fill="#00305A"/>
+    <text x="21" y="18" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="900" font-size="11" letter-spacing="1">LIRR</text>
+    <rect x="6" y="21" width="30" height="2" rx="1" fill="#f7941d"/>
+    <text x="21" y="33" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="600" font-size="6" letter-spacing=".3">LONG ISLAND</text>
+  </svg>`,
 };
+
+function agencyLogo(agency) {
+  return AGENCY_SVG[agency] || `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+    <rect width="42" height="42" rx="6" fill="rgba(255,255,255,.2)"/>
+    <text x="21" y="26" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
+          font-weight="900" font-size="11">${escHtml(agency||'?')}</text>
+  </svg>`;
+}
 
 /* ── Clock ── */
 function updateClock() {
@@ -364,7 +397,6 @@ function pad(n) { return String(n).padStart(2, '0'); }
 /* ── Countdown ── */
 function startCountdown(secs) {
   clearInterval(countdownHandle);
-  clearTimeout(refreshHandle);
   let remaining = secs;
   const el = document.getElementById('refresh-countdown');
   function tick() {
@@ -383,13 +415,11 @@ function startCountdown(secs) {
 /* ── Live status ── */
 function setLiveStatus(state, source) {
   const dot   = document.getElementById('live-dot');
-  const badge = document.getElementById('live-label');
   const src   = document.getElementById('source-badge');
   const colors = { live:'#10b981', loading:'#f59e0b', error:'#ef4444' };
   const c = colors[state] || '#10b981';
   dot.style.background = c;
   document.getElementById('live-indicator').style.color = c;
-
   if (source) {
     src.style.display = 'inline-flex';
     src.className = 'source-badge ' + source;
@@ -397,15 +427,14 @@ function setLiveStatus(state, source) {
   }
 }
 
-/* ── Fetch departures for a station ── */
+/* ── Fetch departures ── */
 async function fetchDepartures(station) {
   setLiveStatus('loading', null);
   try {
     const resp = await fetch(`${API_BASE}&station=${encodeURIComponent(station)}`);
     const data = await resp.json();
     if (!data.ok) throw new Error('API error');
-    allDepartures = data.departures || [];
-    renderBoard(allDepartures);
+    renderBoard(data.departures || []);
     setLiveStatus('live', data.source || 'live');
     startCountdown(data.refresh_sec || REFRESH_SEC);
   } catch(e) {
@@ -419,7 +448,6 @@ async function fetchDepartures(station) {
 function renderBoard(deps) {
   const board = document.getElementById('departure-board');
   const empty = document.getElementById('board-empty');
-
   if (!deps.length) {
     board.innerHTML = '';
     empty.style.display = 'flex';
@@ -430,8 +458,7 @@ function renderBoard(deps) {
 }
 
 function renderError() {
-  const board = document.getElementById('departure-board');
-  board.innerHTML = `
+  document.getElementById('departure-board').innerHTML = `
     <div class="board-loading">
       <span class="material-symbols-outlined" style="color:#ef4444">wifi_off</span>
       <p style="color:#ef4444">Could not load departures. Retrying…</p>
@@ -443,7 +470,6 @@ function buildCard(d, idx) {
   const color     = esc(d.agency_color || '#3b82f6');
   const timeParts = d.time.split(':');
   const hm = timeParts.slice(0, 2).join(':');
-  // Derive AM/PM from time_24
   const h24 = d.time_24 ? parseInt(d.time_24.split(':')[0]) : 0;
   const ampm = h24 >= 12 ? 'PM' : 'AM';
 
@@ -454,13 +480,10 @@ function buildCard(d, idx) {
     cancelled: 'status-cancelled',
   }[d.status_type] || 'status-ontime';
 
-  const agencyLabel = (AGENCY_LABELS[d.agency] || d.agency || '').replace(/\\n/g, '\n');
-  const agencyLines = agencyLabel.split('\n').map(escHtml).join('<br>');
-
   const track = d.track ? `<span class="train-track">Track ${escHtml(d.track)}</span>` : '';
 
   return `
-<div class="train-card" style="background:${color};animation-delay:${idx*0.05}s">
+<div class="train-card" style="background:${color};animation-delay:${idx*0.04}s">
   <div class="train-time-section">
     <span class="train-time-hm">${escHtml(hm)}</span>
     <span class="train-time-ampm">${ampm}</span>
@@ -474,7 +497,7 @@ function buildCard(d, idx) {
     </div>
   </div>
   <div class="train-agency-section">
-    <div class="agency-badge">${agencyLines}</div>
+    <div class="agency-logo">${agencyLogo(d.agency)}</div>
   </div>
 </div>`;
 }
@@ -495,17 +518,17 @@ document.querySelectorAll('.station-tab').forEach(btn => {
     this.classList.add('active');
     currentStation = this.dataset.station;
     clearInterval(countdownHandle);
-    clearTimeout(refreshHandle);
     document.getElementById('departure-board').innerHTML =
       `<div class="board-loading">
          <span class="material-symbols-outlined">departure_board</span>
          <p>Loading departures…</p>
        </div>`;
+    document.getElementById('board-empty').style.display = 'none';
     fetchDepartures(currentStation);
   });
 });
 
-/* ── Init: activate first tab and fetch ── */
+/* ── Init ── */
 const firstTab = document.querySelector('.station-tab');
 if (firstTab) {
   firstTab.classList.add('active');

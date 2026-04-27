@@ -41,7 +41,8 @@ $departures = [];
 $source = 'demo';
 
 if ($station_cfg['agency'] === 'MNR') {
-    $live = fetch_mta_mnr_departures($station_cfg['stop_id'], $limit);
+    $mta_key = rl_setting('mta_api_key', '');
+    $live = fetch_mta_mnr_departures($station_cfg['stop_id'], $limit, $mta_key);
     if (!empty($live)) {
         $departures = $live;
         $source = 'live';
@@ -203,7 +204,7 @@ function proto_parse_trip_descriptor(ProtoReader $r): array {
 }
 
 function proto_parse_stu(ProtoReader $r): array {
-    $stu = ['stop_sequence' => null, 'stop_id' => '', 'arrival' => null, 'departure' => null];
+    $stu = ['stop_sequence' => null, 'stop_id' => '', 'arrival' => null, 'departure' => null, 'mta_extension' => null];
     while (!$r->eof()) {
         $tag = $r->readTag();
         if (!$tag) break;
@@ -215,6 +216,9 @@ function proto_parse_stu(ProtoReader $r): array {
             $stu['arrival'] = proto_parse_ste($r->sub());
         } elseif ($tag['field'] === 3 && $tag['wire'] === 2) {
             $stu['departure'] = proto_parse_ste($r->sub());
+        } elseif ($tag['field'] === 1005 && $tag['wire'] === 2) {
+            // MtaRailroadStopTimeUpdate extension — contains track + trainStatus
+            $stu['mta_extension'] = proto_parse_mta_stu_ext($r->sub());
         } else {
             $r->skip($tag['wire']);
         }
@@ -238,6 +242,26 @@ function proto_parse_ste(ProtoReader $r): array {
         }
     }
     return $e;
+}
+
+/**
+ * Parse MtaRailroadStopTimeUpdate extension (field 1005 inside StopTimeUpdate).
+ * Returns ['track' => string, 'trainStatus' => string].
+ */
+function proto_parse_mta_stu_ext(ProtoReader $r): array {
+    $ext = ['track' => '', 'trainStatus' => ''];
+    while (!$r->eof()) {
+        $tag = $r->readTag();
+        if (!$tag) break;
+        if ($tag['field'] === 1 && $tag['wire'] === 2) {
+            $ext['track'] = $r->readBytes();
+        } elseif ($tag['field'] === 2 && $tag['wire'] === 2) {
+            $ext['trainStatus'] = $r->readBytes();
+        } else {
+            $r->skip($tag['wire']);
+        }
+    }
+    return $ext;
 }
 
 /* ── MNR route info (color + name) ── */
@@ -344,14 +368,22 @@ function mnr_stop_name(string $stop_id): string {
 
 /* ═══════════════════════════════════════════════════
    MTA METRO-NORTH GTFS-RT FETCHER
-   No API key needed per MTA policy (as of 2024).
+   An API key (x-api-key) is required — obtain one free
+   at developer.mta.info and save it in RoomLink Settings.
    ═══════════════════════════════════════════════════ */
-function fetch_mta_mnr_departures(string $stop_id, int $limit): array {
+function fetch_mta_mnr_departures(string $stop_id, int $limit, string $api_key = ''): array {
     $feed_url = 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/mnr%2Fgtfs-mnr';
+
+    $headers = "Accept: application/octet-stream\r\n";
+    if ($api_key !== '') {
+        $headers .= "x-api-key: {$api_key}\r\n";
+    }
+
     $ctx = stream_context_create([
         'http' => [
-            'timeout'       => 6,
+            'timeout'       => 8,
             'ignore_errors' => true,
+            'header'        => $headers,
         ],
     ]);
     $raw = @file_get_contents($feed_url, false, $ctx);
@@ -389,23 +421,34 @@ function fetch_mta_mnr_departures(string $stop_id, int $limit): array {
         $dep_ts    = (int)$dep['time'];
         $delay_sec = (int)($dep['delay'] ?? 0);
 
+        // Track comes from MtaRailroadStopTimeUpdate extension field 1005
+        $mta_ext   = $target_stu['mta_extension'] ?? null;
+        $track     = $mta_ext['track'] ?? '';
+
+        // trainStatus from extension can override computed status
+        $ext_status = strtolower($mta_ext['trainStatus'] ?? '');
+
         $route_info  = mnr_route_info($tu['trip']['route_id'] ?? '');
         $destination = $last_stu ? mnr_stop_name($last_stu['stop_id']) : 'Unknown';
 
-        $status_type = 'ontime';
+        $status_type  = 'ontime';
         $status_label = 'On Time';
-        if ($delay_sec > 120) {
+
+        if (str_contains($ext_status, 'cancel')) {
+            $status_type  = 'cancelled';
+            $status_label = 'CANCELLED';
+        } elseif (str_contains($ext_status, 'board') || ($dep_ts - $now < 120 && $delay_sec <= 120)) {
+            $status_type  = 'boarding';
+            $status_label = 'BOARDING';
+        } elseif ($delay_sec > 120) {
             $delay_min    = (int)round($delay_sec / 60);
             $status_type  = 'delayed';
             $status_label = "DELAYED +{$delay_min}m";
-        } elseif ($dep_ts - $now < 120) {
-            $status_type  = 'boarding';
-            $status_label = 'BOARDING';
         }
 
         $deps[] = [
             'id'               => $entity['id'],
-            'track'            => '',
+            'track'            => $track,
             'time'             => date('g:i', $dep_ts),
             'time_24'          => date('H:i', $dep_ts),
             'destination'      => $destination,
@@ -454,21 +497,24 @@ function fetch_njt_departures(string $njt_station_code, string $username, string
 }
 
 function njt_get_token(string $username, string $password): ?string {
+    // NJT Rail Data API v2 uses form-encoded POST for token
     $url  = 'https://raildata.njtransit.com/api/Account/token';
-    $body = json_encode(['userName' => $username, 'password' => $password]);
+    $body = http_build_query(['username' => $username, 'password' => $password]);
     $ctx  = stream_context_create([
         'http' => [
             'method'        => 'POST',
-            'timeout'       => 5,
+            'timeout'       => 8,
             'ignore_errors' => true,
-            'header'        => "Content-Type: application/json\r\nAccept: application/json\r\n",
+            'header'        => "Content-Type: application/x-www-form-urlencoded\r\nAccept: application/json\r\n",
             'content'       => $body,
         ],
     ]);
     $raw = @file_get_contents($url, false, $ctx);
     if (!$raw) return null;
     $data = json_decode($raw, true);
-    return $data['access_token'] ?? $data['token'] ?? null;
+    if (!is_array($data)) return null;
+    // v2 API may return token in different keys
+    return $data['access_token'] ?? $data['token'] ?? $data['Token'] ?? null;
 }
 
 function njt_line_info(string $line_code): array {
@@ -491,27 +537,32 @@ function njt_parse_departures(array $data, int $limit): array {
     $now  = time();
     $deps = [];
 
-    // Handle various response shapes from NJT API
-    $items = $data['TRAIN_LINE'] ?? $data['trains'] ?? $data['departures'] ?? $data;
+    // NJT API v2 wraps results; handle multiple known shapes
+    $items = $data['TRAIN_LINE']   // v2 schedule endpoint
+          ?? $data['getTrainScheduleJSONResult']
+          ?? $data['trains']
+          ?? $data['departures']
+          ?? (isset($data[0]) ? $data : []);
     if (!is_array($items)) return [];
 
     foreach ($items as $item) {
         if (!is_array($item)) continue;
 
-        // Try to read departure time — NJT may return HH:MM or unix timestamp
+        // Departure time — NJT v2 uses "SCHED_DEP_DATE" as "MM/DD/YYYY HH:MM:SS AM" or unix
         $dep_time_raw = $item['SCHED_DEP_DATE'] ?? $item['departureTime'] ?? $item['DEP_TIME'] ?? '';
         if (!$dep_time_raw) continue;
 
         $dep_ts = is_numeric($dep_time_raw)
             ? (int)$dep_time_raw
-            : strtotime($dep_time_raw);
+            : @strtotime($dep_time_raw);
 
         if (!$dep_ts || $dep_ts < $now) continue;
 
         $line_code  = $item['TRAIN_LINE'] ?? $item['line'] ?? $item['LINE_CODE'] ?? 'NEC';
         $dest       = $item['DESTINATION'] ?? $item['destination'] ?? $item['LAST_STOP'] ?? 'Unknown';
         $status_raw = strtolower($item['STATUS'] ?? $item['status'] ?? 'on time');
-        $track      = $item['TRACK'] ?? $item['track'] ?? '';
+        $track      = $item['TRACK'] ?? $item['track'] ?? $item['PTRACKID'] ?? '';
+        $train_id   = $item['TRAIN_ID'] ?? $item['TRAINID'] ?? uniqid('njt_');
 
         $line_info = njt_line_info($line_code);
 
@@ -519,21 +570,21 @@ function njt_parse_departures(array $data, int $limit): array {
         $status_label = 'On Time';
         $delay_min    = 0;
 
-        if (str_contains($status_raw, 'late') || str_contains($status_raw, 'delay')) {
+        if (str_contains($status_raw, 'cancel')) {
+            $status_type  = 'cancelled';
+            $status_label = 'CANCELLED';
+        } elseif (str_contains($status_raw, 'board')) {
+            $status_type  = 'boarding';
+            $status_label = 'BOARDING';
+        } elseif (str_contains($status_raw, 'late') || str_contains($status_raw, 'delay')) {
             preg_match('/(\d+)/', $status_raw, $m);
             $delay_min    = (int)($m[1] ?? 0);
             $status_type  = 'delayed';
             $status_label = $delay_min ? "DELAYED +{$delay_min}m" : 'DELAYED';
-        } elseif (str_contains($status_raw, 'board')) {
-            $status_type  = 'boarding';
-            $status_label = 'BOARDING';
-        } elseif (str_contains($status_raw, 'cancel')) {
-            $status_type  = 'cancelled';
-            $status_label = 'CANCELLED';
         }
 
         $deps[] = [
-            'id'               => $item['TRAIN_ID'] ?? uniqid('njt_'),
+            'id'               => (string)$train_id,
             'track'            => (string)$track,
             'time'             => date('g:i', $dep_ts),
             'time_24'          => date('H:i', $dep_ts),
