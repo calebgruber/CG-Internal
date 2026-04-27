@@ -151,6 +151,7 @@ $nav_items = [
     ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock', 'active' => true],
     ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
     ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
+    ['icon' => 'extension',         'label' => 'Mods',          'href' => APP_URL . '/wmata/mods'],
 ];
 
 ui_head('Rolling Stock – WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');

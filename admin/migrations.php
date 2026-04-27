@@ -13,6 +13,26 @@ $user = require_auth('admin', true);
 
 $migrations_dir = __DIR__ . '/../db/migrations';
 
+/**
+ * Execute a multi-statement SQL string by splitting on statement boundaries
+ * and running each statement individually. This avoids PDO multi-statement
+ * issues that cause SQLSTATE[42000] syntax errors.
+ */
+function exec_migration_sql(string $sql): void {
+    // Normalize line endings
+    $sql = str_replace("\r\n", "\n", $sql);
+
+    // Split on semicolons that are followed only by whitespace/newline or end-of-string.
+    // This handles UNION ALL and other multi-line constructs correctly.
+    $statements = preg_split('/;\s*(?:\n|$)/u', $sql);
+
+    foreach ($statements as $stmt) {
+        $stmt = trim($stmt);
+        if ($stmt === '' || $stmt === ';') continue;
+        db()->exec($stmt);
+    }
+}
+
 function get_migration_files(string $dir): array {
     if (!is_dir($dir)) return [];
     $files = glob($dir . '/*.sql');
@@ -46,8 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             try {
                 $sql = file_get_contents($file);
-                // Execute each statement separately
-                db()->exec($sql);
+                // Split into individual statements and execute each one separately
+                exec_migration_sql($sql);
                 db()->prepare('INSERT IGNORE INTO migrations (name) VALUES (?)')->execute([$name]);
                 $log[] = ['status' => 'success', 'name' => $name, 'msg' => 'Applied successfully.'];
                 $ran++;
@@ -70,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('danger', 'Migration file not found.');
         } else {
             try {
-                db()->exec(file_get_contents($file));
+                exec_migration_sql(file_get_contents($file));
                 db()->prepare('INSERT IGNORE INTO migrations (name) VALUES (?)')->execute([$name]);
                 flash('success', "Migration \"{$name}\" applied.");
             } catch (PDOException $e) {

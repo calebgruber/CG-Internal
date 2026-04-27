@@ -12,7 +12,7 @@ require_once __DIR__ . '/inc/helpers.php';
 $user = require_auth('wmata');
 
 $upload_dir  = __DIR__ . '/uploads/global/';
-$allowed_ext = ['jpg','jpeg','png','gif','webp','obj','mtl','glb','gltf','fbx','blend','txt','json','yaml','yml','xml','zip'];
+$allowed_ext = ['jpg','jpeg','png','gif','webp','obj','mtl','glb','gltf','fbx','blend','txt','json','yaml','yml','xml','zip','jar','mrpack'];
 $max_size    = 50 * 1024 * 1024;
 
 /* ── POST handlers ──────────────────────────────── */
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fname = uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $orig);
                 if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
                 if (move_uploaded_file($file['tmp_name'], $upload_dir . $fname)) {
-                    $ftype = in_array($_POST['file_type'] ?? '', ['texture','model','diagram','screenshot','reference','other'])
+                    $ftype = in_array($_POST['file_type'] ?? '', ['texture','model','diagram','screenshot','reference','mod','other'])
                              ? $_POST['file_type'] : 'other';
                     $category = trim($_POST['category'] ?? '');
                     $notes    = trim($_POST['notes']    ?? '');
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 /* ── Active tab (file_type filter) ─────────────── */
-$valid_tabs = ['all','texture','model','diagram','screenshot','reference','other'];
+$valid_tabs = ['all','texture','model','diagram','screenshot','reference','mod','other'];
 $active_tab = in_array($_GET['tab'] ?? '', $valid_tabs) ? $_GET['tab'] : 'all';
 
 /* ── Fetch counts per type ──────────────────────── */
@@ -92,6 +92,7 @@ $nav_items = [
     ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
     ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
     ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files', 'active' => true],
+    ['icon' => 'extension',         'label' => 'Mods',          'href' => APP_URL . '/wmata/mods'],
 ];
 
 ui_head('Files – WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');
@@ -106,7 +107,7 @@ ui_page_header('Global Files', 'WMATA Tracker › Files');
   <span class="badge badge-neutral">All (<?= $total_files ?>)</span>
   <?php
   $type_labels = ['texture'=>'Textures','model'=>'Models','diagram'=>'Diagrams',
-                  'screenshot'=>'Screenshots','reference'=>'Reference','other'=>'Other'];
+                  'screenshot'=>'Screenshots','reference'=>'Reference','mod'=>'Mods','other'=>'Other'];
   foreach ($type_labels as $type => $label):
     $cnt = (int)($type_counts[$type] ?? 0);
     if ($cnt === 0) continue;
@@ -128,7 +129,7 @@ ui_page_header('Global Files', 'WMATA Tracker › Files');
   <div class="form-group">
     <label>File *</label>
     <input type="file" name="file" class="form-control" required>
-    <small class="text-muted">Max 50 MB. Allowed: images, 3D files (obj, glb, fbx), text/config, zip.</small>
+    <small class="text-muted">Max 50 MB. Allowed: images, 3D files (obj, glb, fbx), text/config, zip, mod files (jar, mrpack).</small>
   </div>
   <div style="display:flex;gap:.5rem;flex-wrap:wrap">
     <div class="form-group" style="flex:1;min-width:140px">
@@ -139,6 +140,7 @@ ui_page_header('Global Files', 'WMATA Tracker › Files');
         <option value="diagram">Diagram</option>
         <option value="screenshot">Screenshot</option>
         <option value="reference">Reference</option>
+        <option value="mod">Mod</option>
         <option value="other">Other</option>
       </select>
     </div>
@@ -169,6 +171,7 @@ ui_page_header('Global Files', 'WMATA Tracker › Files');
     'diagram'    => 'Blueprint/diagram images for reference',
     'screenshot' => 'In-game or real-world screenshots',
     'reference'  => 'Reference documents, PDFs, photos',
+    'mod'        => 'Minecraft mod files (.jar, .mrpack)',
     'other'      => 'Other miscellaneous files',
   ];
   foreach ($type_descs as $t => $d): ?>
@@ -191,7 +194,7 @@ ui_page_header('Global Files', 'WMATA Tracker › Files');
   ));
   $tab_labels = ['all' => 'All', 'texture' => 'Textures', 'model' => 'Models',
                  'diagram' => 'Diagrams', 'screenshot' => 'Screenshots',
-                 'reference' => 'Reference', 'other' => 'Other'];
+                 'reference' => 'Reference', 'mod' => 'Mods', 'other' => 'Other'];
   foreach ($tab_labels as $t => $l):
     $cnt = $t === 'all' ? $total_files : (int)($type_counts[$t] ?? 0);
   ?>
@@ -221,6 +224,7 @@ ui_page_header('Global Files', 'WMATA Tracker › Files');
         'diagram'    => 'success',
         'screenshot' => 'neutral',
         'reference'  => 'neutral',
+        'mod'        => 'info',
         default      => 'neutral',
     };
     $dl_url = APP_URL . '/wmata/uploads/global/' . rawurlencode($f['filename']);
