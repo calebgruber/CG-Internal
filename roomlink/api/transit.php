@@ -228,9 +228,9 @@ function proto_parse_ste(ProtoReader $r): array {
         $tag = $r->readTag();
         if (!$tag) break;
         if ($tag['field'] === 1 && $tag['wire'] === 0) {
-            $delay = $r->readVarint();
-            // Decode zigzag-encoded sint32 for signed delay
-            $e['delay'] = ($delay >> 1) ^ (-($delay & 1));
+            $raw = $r->readVarint();
+            // Protobuf zigzag-encoded sint32: decode (n >> 1) ^ -(n & 1)
+            $e['delay'] = ($raw >> 1) ^ (-($raw & 1));
         } elseif ($tag['field'] === 2 && $tag['wire'] === 0) {
             $e['time'] = $r->readVarint();
         } else {
