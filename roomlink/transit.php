@@ -326,58 +326,55 @@ ui_card_open('departure_board', 'Departures', $status_bar_html, '#0E71B3');
   border: 1.5px solid rgba(255,255,255,.32);
   flex-shrink: 0;
   overflow: hidden;
+  padding: 3px;
 }
-.agency-logo svg { width: 42px; height: 42px; }
+.agency-logo img { width: 44px; height: 44px; object-fit: contain; display: block; }
+.agency-logo-text {
+  font-size: .58rem;
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+  line-height: 1.15;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 3px;
+}
 </style>
 
 <script>
 const REFRESH_SEC = <?= $refresh_sec ?>;
 const API_BASE    = '<?= APP_URL ?>/roomlink/api/transit?json=1&limit=14';
+const ICON_BASE   = '<?= APP_URL ?>/roomlink/icon?name=';
 
 let currentStation   = 'grand-central';
 let countdownHandle  = null;
 
-/* ── Inline SVG agency logos ── */
-const AGENCY_SVG = {
-  MNR: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
-    <rect width="42" height="42" rx="6" fill="#003087"/>
-    <text x="21" y="16" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="900" font-size="9.5" letter-spacing=".5">METRO</text>
-    <text x="21" y="27" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="900" font-size="9.5" letter-spacing=".5">NORTH</text>
-    <rect x="6" y="30" width="30" height="3" rx="1.5" fill="#e31837"/>
-  </svg>`,
-  NJT: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
-    <rect width="42" height="42" rx="6" fill="#003087"/>
-    <text x="21" y="17" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="900" font-size="13" letter-spacing="1">NJ</text>
-    <rect x="6" y="21" width="30" height="2.5" rx="1.25" fill="#e31837"/>
-    <text x="21" y="33" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="700" font-size="7.5" letter-spacing=".5">TRANSIT</text>
-  </svg>`,
-  AMT: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
-    <rect width="42" height="42" rx="6" fill="#1D6BAE"/>
-    <!-- Amtrak-style arrow -->
-    <polygon points="21,7 29,21 24,21 24,35 18,35 18,21 13,21" fill="white" opacity=".95"/>
-    <text x="21" y="40" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="800" font-size="6.5" letter-spacing=".8">AMTRAK</text>
-  </svg>`,
-  LIRR: `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
-    <rect width="42" height="42" rx="6" fill="#00305A"/>
-    <text x="21" y="18" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="900" font-size="11" letter-spacing="1">LIRR</text>
-    <rect x="6" y="21" width="30" height="2" rx="1" fill="#f7941d"/>
-    <text x="21" y="33" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="600" font-size="6" letter-spacing=".3">LONG ISLAND</text>
-  </svg>`,
+/**
+ * Map agency code → icon file name (MTA, NJT, AMTK, LIRR).
+ * These correspond to roomlink/assets/icons/<NAME>.icon files.
+ */
+const AGENCY_ICON = {
+  MNR:  'MTA',
+  MTA:  'MTA',
+  NJT:  'NJT',
+  AMT:  'AMTK',
+  AMTK: 'AMTK',
+  LIRR: 'LIRR',
 };
 
+/**
+ * Build the agency logo section HTML.
+ * Uses an <img> pointing to the icon server.
+ * Falls back to a text badge if the image fails to load.
+ */
 function agencyLogo(agency) {
-  return AGENCY_SVG[agency] || `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
-    <rect width="42" height="42" rx="6" fill="rgba(255,255,255,.2)"/>
-    <text x="21" y="26" text-anchor="middle" fill="white" font-family="Arial,sans-serif"
-          font-weight="900" font-size="11">${escHtml(agency||'?')}</text>
-  </svg>`;
+  const iconName = AGENCY_ICON[agency] || String(agency || '?').toUpperCase();
+  const src = ICON_BASE + encodeURIComponent(iconName);
+  // onerror swaps to a simple text badge — iconName is always safe alphanumeric
+  return `<img src="${src}" alt="${iconName}"
+    style="width:44px;height:44px;object-fit:contain;display:block;"
+    onerror="this.outerHTML='&lt;span class=&quot;agency-logo-text&quot;&gt;${iconName}&lt;/span&gt;'"
+    loading="lazy">`;
 }
 
 /* ── Clock ── */
@@ -509,6 +506,11 @@ function escHtml(s) {
 }
 function esc(s) {
   return String(s || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function escAttr(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /* ── Station tab switching ── */

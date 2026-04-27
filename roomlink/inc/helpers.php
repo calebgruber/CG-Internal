@@ -86,6 +86,58 @@ function rl_eink_state(): array {
 }
 
 /**
+ * Return the URL that serves a named transit agency .icon file
+ * through roomlink/icon.php (correct MIME type, cached).
+ *
+ * Icon files live in roomlink/assets/icons/<NAME>.icon
+ * Expected names: MTA, NJT, AMTK, LIRR
+ */
+function rl_transit_icon_url(string $name): string {
+    $safe = preg_replace('/[^a-zA-Z0-9_\-]/', '', $name);
+    return APP_URL . '/roomlink/icon?name=' . urlencode($safe);
+}
+
+/**
+ * Returns true when the named icon file exists on disk.
+ */
+function rl_transit_icon_exists(string $name): bool {
+    $safe = preg_replace('/[^a-zA-Z0-9_\-]/', '', $name);
+    return is_file(__DIR__ . '/../assets/icons/' . $safe . '.icon');
+}
+
+/**
+ * Render an <img> tag for a transit agency icon.
+ * Returns empty string when the icon file does not exist.
+ *
+ * @param string $name   Icon slug: MTA, NJT, AMTK, LIRR
+ * @param int    $size   Width/height in pixels
+ * @param string $alt    Alt text (defaults to $name)
+ */
+function rl_transit_icon_img(string $name, int $size = 44, string $alt = ''): string {
+    if (!rl_transit_icon_exists($name)) return '';
+    $url = htmlspecialchars(rl_transit_icon_url($name));
+    $alt = htmlspecialchars($alt ?: $name);
+    $css = 'width:' . $size . 'px;height:' . $size . 'px;object-fit:contain;vertical-align:middle;';
+    return '<img src="' . $url . '" alt="' . $alt . '" style="' . $css . '" loading="lazy">';
+}
+
+/**
+ * Map agency code used in transit feed → icon file name.
+ * MNR trains are branded MTA; NJT → NJT; AMT/Amtrak → AMTK; LIRR → LIRR.
+ */
+function rl_agency_to_icon(string $agency): string {
+    static $map = [
+        'MNR'  => 'MTA',
+        'MTA'  => 'MTA',
+        'NJT'  => 'NJT',
+        'AMT'  => 'AMTK',
+        'AMTK' => 'AMTK',
+        'LIRR' => 'LIRR',
+    ];
+    return $map[strtoupper($agency)] ?? strtoupper($agency);
+}
+
+/**
  * Update the current e-ink tab.
  */
 function rl_set_eink_tab(string $tab): void {
