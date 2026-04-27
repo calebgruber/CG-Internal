@@ -24,11 +24,12 @@ $station = strtolower(trim($_GET['station'] ?? 'grand-central'));
 
 /* ── Station configuration ── */
 $stations = [
-    'stamford'      => ['label' => 'Stamford',            'agency' => 'MNR', 'stop_id' => '110'],
-    'grand-central' => ['label' => 'Grand Central',       'agency' => 'MNR', 'stop_id' => '1'],
-    'white-plains'  => ['label' => 'White Plains',        'agency' => 'MNR', 'stop_id' => '117'],
-    'penn-station'  => ['label' => 'Penn Station NY',     'agency' => 'NJT', 'njt_code' => 'NY'],
-    'metropark'     => ['label' => 'Metropark',           'agency' => 'NJT', 'njt_code' => 'MP'],
+    'stamford'      => ['label' => 'Stamford',              'agency' => 'MNR', 'stop_id'    => '110'],
+    'grand-central' => ['label' => 'Grand Central',         'agency' => 'MNR', 'stop_id'    => '1'],
+    'white-plains'  => ['label' => 'White Plains',          'agency' => 'MNR', 'stop_id'    => '117'],
+    'penn-station'  => ['label' => 'Penn Station NY',       'agency' => 'NJT', 'njt_code'   => 'NY'],
+    'metropark'     => ['label' => 'Metropark',             'agency' => 'NJT', 'njt_code'   => 'MP'],
+    'amtrak-penn'   => ['label' => 'Amtrak @ Penn Station', 'agency' => 'AMT', 'amtrak_code'=> 'NYP'],
 ];
 
 if (!isset($stations[$station])) {
@@ -37,11 +38,12 @@ if (!isset($stations[$station])) {
 $station_cfg = $stations[$station];
 
 /* ── Fetch live data ── */
-$departures = [];
-$source = 'demo';
+$departures   = [];
+$source       = 'demo';
+$error_detail = '';
 
 if ($station_cfg['agency'] === 'MNR') {
-    $live = fetch_mta_mnr_departures($station_cfg['stop_id'], $limit);
+    $live = fetch_mta_mnr_departures($station_cfg['stop_id'], $limit, $error_detail);
     if (!empty($live)) {
         $departures = $live;
         $source = 'live';
@@ -50,11 +52,19 @@ if ($station_cfg['agency'] === 'MNR') {
     $njt_user = rl_setting('njt_username', '');
     $njt_pass = rl_setting('njt_password', '');
     if ($njt_user !== '' && $njt_pass !== '') {
-        $live = fetch_njt_departures($station_cfg['njt_code'], $njt_user, $njt_pass, $limit);
+        $live = fetch_njt_departures($station_cfg['njt_code'], $njt_user, $njt_pass, $limit, $error_detail);
         if (!empty($live)) {
             $departures = $live;
             $source = 'live';
         }
+    } else {
+        $error_detail = 'NJT credentials not configured – add username/password in Settings';
+    }
+} elseif ($station_cfg['agency'] === 'AMT') {
+    $live = fetch_amtrak_departures($station_cfg['amtrak_code'], $limit, $error_detail);
+    if (!empty($live)) {
+        $departures = $live;
+        $source = 'live';
     }
 }
 
@@ -69,13 +79,14 @@ usort($departures, fn($a, $b) => strcmp($a['time_24'], $b['time_24']));
 $departures = array_values(array_slice($departures, 0, $limit));
 
 echo json_encode([
-    'ok'          => true,
-    'source'      => $source,
-    'station'     => $station,
+    'ok'            => true,
+    'source'        => $source,
+    'error_detail'  => $error_detail,
+    'station'       => $station,
     'station_label' => $station_cfg['label'],
-    'departures'  => $departures,
-    'fetched_at'  => (new DateTime())->format(DateTime::ATOM),
-    'refresh_sec' => (int) rl_setting('transit_refresh_sec', '30'),
+    'departures'    => $departures,
+    'fetched_at'    => (new DateTime())->format(DateTime::ATOM),
+    'refresh_sec'   => (int) rl_setting('transit_refresh_sec', '30'),
 ]);
 exit;
 
@@ -265,21 +276,42 @@ function proto_parse_mta_stu_ext(ProtoReader $r): array {
 
 /* ── MNR route info (color + name) ── */
 function mnr_route_info(string $route_id): array {
-    static $routes = [
-        // Metro-North route IDs from public GTFS
-        '1'  => ['name' => 'New Haven Line',   'color' => '#0057A9'],
-        '2'  => ['name' => 'Harlem Line',       'color' => '#5B2C8D'],
-        '3'  => ['name' => 'Hudson Line',       'color' => '#009B3A'],
-        '4'  => ['name' => 'New Haven Line',    'color' => '#0057A9'],  // express branch
-        '5'  => ['name' => 'Harlem Line',       'color' => '#5B2C8D'],
-        '6'  => ['name' => 'Hudson Line',       'color' => '#009B3A'],
-        'GH' => ['name' => 'New Haven Line',   'color' => '#0057A9'],
-        'ME' => ['name' => 'New Haven Line',   'color' => '#0057A9'],
-        'H'  => ['name' => 'Harlem Line',       'color' => '#5B2C8D'],
-        'HU' => ['name' => 'Hudson Line',       'color' => '#009B3A'],
+    static $exact = [
+        // Numeric GTFS route IDs
+        '1'  => ['name' => 'New Haven Line',  'color' => '#0057A9'],
+        '2'  => ['name' => 'Harlem Line',     'color' => '#5B2C8D'],
+        '3'  => ['name' => 'Hudson Line',     'color' => '#009B3A'],
+        '4'  => ['name' => 'New Haven Line',  'color' => '#0057A9'],
+        '5'  => ['name' => 'Harlem Line',     'color' => '#5B2C8D'],
+        '6'  => ['name' => 'Hudson Line',     'color' => '#009B3A'],
+        // Short-code route IDs
+        'GH' => ['name' => 'New Haven Line',  'color' => '#0057A9'],
+        'ME' => ['name' => 'New Haven Line',  'color' => '#0057A9'],
+        'WB' => ['name' => 'New Haven Line',  'color' => '#0057A9'],
+        'NC' => ['name' => 'New Haven Line',  'color' => '#0057A9'],
+        'H'  => ['name' => 'Harlem Line',     'color' => '#5B2C8D'],
+        'SE' => ['name' => 'Harlem Line',     'color' => '#5B2C8D'],
+        'DN' => ['name' => 'Harlem Line',     'color' => '#5B2C8D'],
+        'HU' => ['name' => 'Hudson Line',     'color' => '#009B3A'],
+        'PJ' => ['name' => 'Hudson Line',     'color' => '#009B3A'],
+        'PM' => ['name' => 'Hudson Line',     'color' => '#009B3A'],
     ];
-    $info = $routes[$route_id] ?? $routes[strtoupper($route_id)] ?? null;
-    return $info ?? ['name' => 'Metro-North', 'color' => '#0E71B3'];
+
+    // Exact match (numeric or short code, case-insensitive)
+    $up = strtoupper(trim($route_id));
+    if (isset($exact[$route_id])) return $exact[$route_id];
+    if (isset($exact[$up]))       return $exact[$up];
+
+    // Keyword fallback for full-name route IDs from GTFS-RT
+    $lo = strtolower($route_id);
+    if (str_contains($lo, 'new haven') || str_contains($lo, 'newhaven'))
+        return ['name' => 'New Haven Line', 'color' => '#0057A9'];
+    if (str_contains($lo, 'harlem'))
+        return ['name' => 'Harlem Line',    'color' => '#5B2C8D'];
+    if (str_contains($lo, 'hudson'))
+        return ['name' => 'Hudson Line',    'color' => '#009B3A'];
+
+    return ['name' => 'Metro-North', 'color' => '#0E71B3'];
 }
 
 /* ── Map stop_id → station name ── */
@@ -367,25 +399,57 @@ function mnr_stop_name(string $stop_id): string {
 
 /* ═══════════════════════════════════════════════════
    MTA METRO-NORTH GTFS-RT FETCHER
-   The MTA GTFS-RT feed for Metro-North is publicly accessible
-   without an API key at the endpoint below.
+   Decodes the binary GTFS-RT protobuf feed.
+   An optional API key can be configured in Settings; the
+   endpoint is tried without a key first if none is saved.
    ═══════════════════════════════════════════════════ */
-function fetch_mta_mnr_departures(string $stop_id, int $limit): array {
+function fetch_mta_mnr_departures(string $stop_id, int $limit, string &$error_out = ''): array {
     $feed_url = 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/mnr%2Fgtfs-mnr';
+    $api_key  = rl_setting('mta_api_key', '');
+
+    $headers = "Accept: application/octet-stream\r\nUser-Agent: RoomLink/1.0\r\n";
+    if ($api_key !== '') {
+        $safe_key = preg_replace('/[\r\n]/', '', $api_key);
+        $headers .= "x-api-key: {$safe_key}\r\n";
+    }
 
     $ctx = stream_context_create([
         'http' => [
             'timeout'       => 10,
             'ignore_errors' => true,
-            'header'        => "Accept: application/octet-stream\r\n",
+            'header'        => $headers,
         ],
     ]);
     $raw = @file_get_contents($feed_url, false, $ctx);
-    if (!$raw || strlen($raw) < 10) return [];
+
+    // Capture HTTP status code from response headers
+    $http_status = 0;
+    if (isset($http_response_header)) {
+        foreach ($http_response_header as $hdr) {
+            if (preg_match('#^HTTP/\S+\s+(\d+)#', $hdr, $m)) {
+                $http_status = (int)$m[1];
+                break;
+            }
+        }
+    }
+
+    if ($http_status && $http_status !== 200) {
+        $hint = ($http_status === 401 || $http_status === 403)
+            ? ' – set an MTA API key in Settings'
+            : '';
+        $error_out = "MTA GTFS-RT returned HTTP {$http_status}{$hint}";
+        return [];
+    }
+    if (!$raw || strlen($raw) < 16) {
+        $error_out = 'MTA GTFS-RT: empty or unreadable response'
+                   . ($http_status ? " (HTTP {$http_status})" : ' (no response)');
+        return [];
+    }
 
     try {
         $entities = proto_parse_feed($raw);
     } catch (Throwable $e) {
+        $error_out = 'MTA GTFS-RT parse error: ' . $e->getMessage();
         return [];
     }
 
@@ -465,9 +529,9 @@ function fetch_mta_mnr_departures(string $stop_id, int $limit): array {
    NJ TRANSIT RAIL API v2 FETCHER
    Uses NJT developer portal credentials.
    ═══════════════════════════════════════════════════ */
-function fetch_njt_departures(string $njt_station_code, string $username, string $password, int $limit): array {
+function fetch_njt_departures(string $njt_station_code, string $username, string $password, int $limit, string &$error_out = ''): array {
     // Step 1: Obtain access token
-    $token = njt_get_token($username, $password);
+    $token = njt_get_token($username, $password, $error_out);
     if (!$token) return [];
 
     // Step 2: Fetch departures
@@ -484,15 +548,21 @@ function fetch_njt_departures(string $njt_station_code, string $username, string
         ],
     ]);
     $raw = @file_get_contents($url, false, $ctx);
-    if (!$raw) return [];
+    if (!$raw) {
+        $error_out = 'NJT: no response from schedule endpoint';
+        return [];
+    }
 
     $data = json_decode($raw, true);
-    if (!is_array($data)) return [];
+    if (!is_array($data)) {
+        $error_out = 'NJT: invalid JSON from schedule endpoint';
+        return [];
+    }
 
     return njt_parse_departures($data, $limit);
 }
 
-function njt_get_token(string $username, string $password): ?string {
+function njt_get_token(string $username, string $password, string &$error_out = ''): ?string {
     // NJT Rail Data API v2 uses form-encoded POST for token
     $url  = 'https://raildata.njtransit.com/api/Account/token';
     $body = http_build_query(['username' => $username, 'password' => $password]);
@@ -506,11 +576,21 @@ function njt_get_token(string $username, string $password): ?string {
         ],
     ]);
     $raw = @file_get_contents($url, false, $ctx);
-    if (!$raw) return null;
+    if (!$raw) {
+        $error_out = 'NJT: failed to obtain access token (check credentials)';
+        return null;
+    }
     $data = json_decode($raw, true);
-    if (!is_array($data)) return null;
+    if (!is_array($data)) {
+        $error_out = 'NJT: invalid token response';
+        return null;
+    }
     // v2 API may return token in different keys
-    return $data['access_token'] ?? $data['token'] ?? $data['Token'] ?? null;
+    $tok = $data['access_token'] ?? $data['token'] ?? $data['Token'] ?? null;
+    if (!$tok) {
+        $error_out = 'NJT: no token in response – wrong credentials?';
+    }
+    return $tok;
 }
 
 function njt_line_info(string $line_code): array {
@@ -601,8 +681,119 @@ function njt_parse_departures(array $data, int $limit): array {
 }
 
 /* ═══════════════════════════════════════════════════
-   DEMO DATA GENERATOR — realistic per-station data
+   AMTRAK FETCHER — uses api.amtraker.com (no auth needed)
+   Endpoint: /v1/stations/{stationCode}  → array of stationMin
    ═══════════════════════════════════════════════════ */
+function fetch_amtrak_departures(string $station_code, int $limit, string &$error_out = ''): array {
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout'       => 10,
+            'ignore_errors' => true,
+            'header'        => "Accept: application/json\r\nUser-Agent: RoomLink/1.0\r\n",
+        ],
+    ]);
+
+    // Fetch station-level departures
+    $url = 'https://api.amtraker.com/v1/stations/' . urlencode(strtoupper($station_code));
+    $raw = @file_get_contents($url, false, $ctx);
+    if (!$raw) {
+        $error_out = 'Amtrak: no response from api.amtraker.com';
+        return [];
+    }
+    $station_data = json_decode($raw, true);
+    if (!is_array($station_data)) {
+        $error_out = 'Amtrak: invalid JSON from station endpoint';
+        return [];
+    }
+
+    // Fetch train-number → route-name lookup (small dictionary)
+    $train_keys = [];
+    $keys_raw   = @file_get_contents('https://api.amtraker.com/v1/trains/keys', false, $ctx);
+    if ($keys_raw) {
+        $decoded = json_decode($keys_raw, true);
+        if (is_array($decoded)) $train_keys = $decoded;
+    }
+
+    $now  = time();
+    $deps = [];
+
+    // Response is an array of stationMin objects (one per train)
+    $trains = isset($station_data[0]) ? $station_data : array_values($station_data);
+
+    foreach ($trains as $train) {
+        if (!is_array($train)) continue;
+
+        $train_num = (int)($train['trainNum'] ?? 0);
+        if (!$train_num) continue;
+
+        // Prefer estimated departure, fall back to scheduled; skip arrivals-only
+        $dep_str = $train['estDep'] ?? $train['schDep'] ?? null;
+        if (!$dep_str) continue;
+        $dep_ts = @strtotime((string)$dep_str);
+        if (!$dep_ts || $dep_ts < ($now - 300)) continue; // skip if departed >5 min ago
+
+        $route_name   = $train_keys[$train_num] ?? $train_keys[(string)$train_num] ?? "Train #{$train_num}";
+        $dep_cmt      = trim((string)($train['estDepCmnt'] ?? $train['postCmnt'] ?? ''));
+        $status_type  = 'ontime';
+        $status_label = 'On Time';
+
+        if ($dep_cmt !== '' && strtolower($dep_cmt) !== 'on time') {
+            if (preg_match('/(\d+)\s*min.*late/i', $dep_cmt, $m)) {
+                $status_type  = 'delayed';
+                $status_label = "DELAYED +{$m[1]}m";
+            } elseif (stripos($dep_cmt, 'late') !== false) {
+                $status_type  = 'delayed';
+                $status_label = strtoupper($dep_cmt);
+            } elseif (stripos($dep_cmt, 'early') !== false) {
+                $status_label = $dep_cmt;
+            }
+        }
+        // If train already departed the station
+        if (!empty($train['postDep'])) {
+            $status_type  = 'boarding';
+            $status_label = 'DEPARTED';
+        }
+
+        $color = amtrak_route_color($route_name);
+        $deps[] = [
+            'id'               => "amtk_{$train_num}",
+            'track'            => '',
+            'time'             => date('g:i', $dep_ts),
+            'time_24'          => date('H:i', $dep_ts),
+            'destination'      => $route_name,
+            'agency'           => 'AMTK',
+            'agency_name'      => 'Amtrak',
+            'agency_color'     => $color,
+            'agency_text_color'=> '#ffffff',
+            'line_name'        => "Train {$train_num}",
+            'status'           => $status_label,
+            'status_type'      => $status_type,
+            'delay_minutes'    => 0,
+        ];
+    }
+
+    usort($deps, fn($a, $b) => strcmp($a['time_24'], $b['time_24']));
+    return array_values(array_slice($deps, 0, $limit));
+}
+
+/** Map Amtrak route name → brand color */
+function amtrak_route_color(string $route_name): string {
+    $r = strtolower($route_name);
+    if (str_contains($r, 'acela'))          return '#CC0000';
+    if (str_contains($r, 'northeast'))      return '#CC0000';
+    if (str_contains($r, 'regional'))       return '#CC0000';
+    if (str_contains($r, 'empire'))         return '#003189';
+    if (str_contains($r, 'lake shore'))     return '#003189';
+    if (str_contains($r, 'cardinal'))       return '#003189';
+    if (str_contains($r, 'carolinian'))     return '#003189';
+    if (str_contains($r, 'palmetto'))       return '#003189';
+    if (str_contains($r, 'silver'))         return '#003189';
+    if (str_contains($r, 'pennsylvanian'))  return '#003189';
+    if (str_contains($r, 'vermonter'))      return '#003189';
+    return '#003189'; // Default Amtrak navy
+}
+
+
 function generate_demo_departures(string $station): array {
     $now = time();
 
@@ -651,6 +842,14 @@ function generate_demo_departures(string $station): array {
             ['offset' => 48, 'dest' => 'New York Penn Station',  'track' => '1', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'ontime',   'delay' => 0],
             ['offset' => 60, 'dest' => 'Trenton',                'track' => '2', 'agency' => 'NJT', 'line' => 'Northeast Corridor',  'color' => '#DA291C', 'st' => 'ontime',   'delay' => 0],
         ],
+        'amtrak-penn' => [
+            ['offset' =>  5, 'dest' => 'Acela',                  'track' => '',  'agency' => 'AMTK', 'line' => 'Train 2154', 'color' => '#CC0000', 'st' => 'boarding', 'delay' => 0],
+            ['offset' => 12, 'dest' => 'Northeast Regional',     'track' => '',  'agency' => 'AMTK', 'line' => 'Train 171',  'color' => '#CC0000', 'st' => 'ontime',   'delay' => 0],
+            ['offset' => 21, 'dest' => 'Empire Service',         'track' => '',  'agency' => 'AMTK', 'line' => 'Train 53',   'color' => '#003189', 'st' => 'ontime',   'delay' => 0],
+            ['offset' => 30, 'dest' => 'Acela',                  'track' => '',  'agency' => 'AMTK', 'line' => 'Train 2156', 'color' => '#CC0000', 'st' => 'delayed',  'delay' => 8],
+            ['offset' => 44, 'dest' => 'Northeast Regional',     'track' => '',  'agency' => 'AMTK', 'line' => 'Train 173',  'color' => '#CC0000', 'st' => 'ontime',   'delay' => 0],
+            ['offset' => 58, 'dest' => 'Carolinian',             'track' => '',  'agency' => 'AMTK', 'line' => 'Train 79',   'color' => '#003189', 'st' => 'ontime',   'delay' => 0],
+        ],
     ];
 
     $schedule = $by_station[$station] ?? $by_station['grand-central'];
@@ -672,7 +871,12 @@ function generate_demo_departures(string $station): array {
             'time_24'          => date('H:i', $ts),
             'destination'      => $s['dest'],
             'agency'           => $s['agency'],
-            'agency_name'      => $s['agency'] === 'MNR' ? 'Metro-North' : 'NJ Transit',
+            'agency_name'      => match($s['agency']) {
+                'MNR'  => 'Metro-North',
+                'NJT'  => 'NJ Transit',
+                'AMTK' => 'Amtrak',
+                default=> $s['agency'],
+            },
             'agency_color'     => $s['color'],
             'agency_text_color'=> '#ffffff',
             'line_name'        => $s['line'],

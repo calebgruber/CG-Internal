@@ -33,6 +33,7 @@ ui_page_header('Transit Departure Board', 'Live departures');
         'white-plains'  => ['label' => 'White Plains',    'icon' => 'train'],
         'penn-station'  => ['label' => 'Penn Station',    'icon' => 'train'],
         'metropark'     => ['label' => 'Metropark',       'icon' => 'train'],
+        'amtrak-penn'   => ['label' => 'Amtrak',          'icon' => 'train'],
     ];
     foreach ($station_tabs as $slug => $tab):
     ?>
