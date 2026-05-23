@@ -49,16 +49,23 @@ if ($station_cfg['agency'] === 'MNR') {
         $source = 'live';
     }
 } elseif ($station_cfg['agency'] === 'NJT') {
+    $njt_token = rl_setting('njt_api_token', '');
     $njt_user = rl_setting('njt_username', '');
     $njt_pass = rl_setting('njt_password', '');
-    if ($njt_user !== '' && $njt_pass !== '') {
+    if ($njt_token !== '') {
+        $live = fetch_njt_departures_with_token($station_cfg['njt_code'], $njt_token, $limit, $error_detail);
+        if (!empty($live)) {
+            $departures = $live;
+            $source = 'live';
+        }
+    } elseif ($njt_user !== '' && $njt_pass !== '') {
         $live = fetch_njt_departures($station_cfg['njt_code'], $njt_user, $njt_pass, $limit, $error_detail);
         if (!empty($live)) {
             $departures = $live;
             $source = 'live';
         }
     } else {
-        $error_detail = 'NJT credentials not configured – add username/password in Settings';
+        $error_detail = 'NJT credentials not configured – add API token or username/password in Settings';
     }
 } elseif ($station_cfg['agency'] === 'AMT') {
     $live = fetch_amtrak_departures($station_cfg['amtrak_code'], $limit, $error_detail);
@@ -534,6 +541,10 @@ function fetch_njt_departures(string $njt_station_code, string $username, string
     if (!$token) return [];
 
     // Step 2: Fetch departures
+    return fetch_njt_departures_with_token($njt_station_code, $token, $limit, $error_out);
+}
+
+function fetch_njt_departures_with_token(string $njt_station_code, string $token, int $limit, string &$error_out = ''): array {
     $url = 'https://raildata.njtransit.com/api/TrainData/getTrainScheduleJSON'
          . '?station=' . urlencode($njt_station_code);
     // Sanitize token to prevent header injection
@@ -548,7 +559,19 @@ function fetch_njt_departures(string $njt_station_code, string $username, string
     ]);
     $raw = @file_get_contents($url, false, $ctx);
     if (!$raw) {
-        $error_out = 'NJT: no response from schedule endpoint';
+        $http_status = 0;
+        if (isset($http_response_header)) {
+            foreach ($http_response_header as $hdr) {
+                if (preg_match('#^HTTP/\S+\s+(\d+)#', $hdr, $m)) {
+                    $http_status = (int)$m[1];
+                    break;
+                }
+            }
+        }
+        $hint = ($http_status === 401 || $http_status === 403) ? ' (invalid or expired token)' : '';
+        $error_out = 'NJT: no response from schedule endpoint'
+                   . ($http_status ? " (HTTP {$http_status})" : '')
+                   . $hint;
         return [];
     }
 
@@ -807,4 +830,3 @@ function amtrak_route_color(string $route_name): string {
     if (str_contains($r, 'vermonter'))      return '#003189';
     return '#003189'; // Default Amtrak navy
 }
-

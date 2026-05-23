@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_setting('rl_' . $k, trim($_POST[$k] ?? ''));
         }
         // NJT credentials only update if non-empty
-        foreach (['njt_username', 'njt_password'] as $k) {
+        foreach (['njt_username', 'njt_password', 'njt_api_token'] as $k) {
             $v = trim($_POST[$k] ?? '');
             if ($v !== '') set_setting('rl_' . $k, $v);
         }
@@ -112,13 +112,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'reset_settings') {
         $rl_keys = [
             'rl_transit_refresh_sec', 'rl_eink_auto_refresh', 'rl_njt_username',
-            'rl_njt_password', 'rl_default_origin', 'rl_wled_global_ip',
+            'rl_njt_password', 'rl_njt_api_token', 'rl_default_origin', 'rl_wled_global_ip',
         ];
         $defaults = [
             'rl_transit_refresh_sec' => '30',
             'rl_eink_auto_refresh'   => '1',
             'rl_njt_username'        => '',
             'rl_njt_password'        => '',
+            'rl_njt_api_token'       => '',
             'rl_default_origin'      => '',
             'rl_wled_global_ip'      => '',
         ];
@@ -256,6 +257,12 @@ ui_page_header('Settings', 'Configure RoomLink — lights, transit, display');
              placeholder="Leave blank to keep current"
              autocomplete="new-password">
       <div class="form-hint">Your NJ Transit developer portal password. Leave blank to keep the saved value.</div>
+    </div>
+    <div class="form-group">
+      <label>NJ Transit API Token</label>
+      <input type="password" name="njt_api_token" class="form-control"
+             placeholder="Paste bearer token from NJ Transit Rail Data API">
+      <div class="form-hint">Preferred for live train data. Leave blank to keep the saved token. If empty, username/password token flow is used.</div>
     </div>
     <div class="form-group">
       <label>Default Origin Station</label>
