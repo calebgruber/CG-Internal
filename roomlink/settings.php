@@ -120,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'rl_njt_username'        => '',
             'rl_njt_password'        => '',
             'rl_njt_api_token'       => '',
+            'rl_njt_api_key'         => '',
             'rl_default_origin'      => '',
             'rl_wled_global_ip'      => '',
         ];
@@ -262,7 +263,7 @@ ui_page_header('Settings', 'Configure RoomLink — lights, transit, display');
       <label>NJ Transit API Token</label>
       <input type="password" name="njt_api_token" class="form-control"
              placeholder="Paste bearer token from NJ Transit Rail Data API">
-      <div class="form-hint">Preferred for live train data. Leave blank to keep the saved token. If empty, username/password token flow is used.</div>
+      <div class="form-hint">Preferred for live train data. Leave blank to preserve the existing token. If no token is configured, username/password token flow is used.</div>
     </div>
     <div class="form-group">
       <label>Default Origin Station</label>

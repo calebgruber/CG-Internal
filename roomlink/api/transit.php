@@ -50,6 +50,10 @@ if ($station_cfg['agency'] === 'MNR') {
     }
 } elseif ($station_cfg['agency'] === 'NJT') {
     $njt_token = rl_setting('njt_api_token', '');
+    if ($njt_token === '') {
+        // Backward compatibility for older key naming in existing installs.
+        $njt_token = rl_setting('njt_api_key', '');
+    }
     $njt_user = rl_setting('njt_username', '');
     $njt_pass = rl_setting('njt_password', '');
     if ($njt_token !== '') {
@@ -65,7 +69,7 @@ if ($station_cfg['agency'] === 'MNR') {
             $source = 'live';
         }
     } else {
-        $error_detail = 'NJT credentials not configured – add API token or username/password in Settings';
+        $error_detail = 'NJT credentials not configured – add API token (preferred) or username/password in Settings';
     }
 } elseif ($station_cfg['agency'] === 'AMT') {
     $live = fetch_amtrak_departures($station_cfg['amtrak_code'], $limit, $error_detail);
@@ -568,8 +572,10 @@ function fetch_njt_departures_with_token(string $njt_station_code, string $token
                 }
             }
         }
-        $hint = ($http_status === 401 || $http_status === 403) ? ' (invalid or expired token)' : '';
-        $error_out = 'NJT: no response from schedule endpoint'
+        $hint = ($http_status === 401 || $http_status === 403)
+            ? ' – API token is invalid or expired; update it in Settings'
+            : '';
+        $error_out = 'NJT: schedule endpoint request failed'
                    . ($http_status ? " (HTTP {$http_status})" : '')
                    . $hint;
         return [];
