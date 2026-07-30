@@ -1,0 +1,8 @@
+# Deny direct HTTP access to .icon files — they are served via roomlink/icon.php
+# which validates the filename, detects MIME type, and sets correct headers.
+<FilesMatch "\.icon$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+Options -Indexes

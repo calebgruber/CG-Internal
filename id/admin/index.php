@@ -69,8 +69,10 @@ ui_card_open('apps', 'Registered Applications',
 ?>
   <?php if ($apps): ?>
   <div class="apps-grid">
-    <?php foreach ($apps as $app): ?>
-    <a href="<?= htmlspecialchars($app['url']) ?>" class="app-tile">
+    <?php foreach ($apps as $app):
+        $transit = APP_URL . '/id/auth/transit.php?' . http_build_query(['app_name' => $app['name'], 'redirect' => $app['url']]);
+    ?>
+    <a href="<?= htmlspecialchars($transit) ?>" class="app-tile">
       <span class="material-symbols-outlined"><?= htmlspecialchars($app['icon']) ?></span>
       <span class="app-tile-name"><?= htmlspecialchars($app['name']) ?></span>
     </a>

@@ -79,18 +79,12 @@ function wmata_line_badge(string $abbr, string $color, int $size = 22): string {
     $safe_a = htmlspecialchars($abbr);
 
     if (wmata_icon_exists($slug)) {
-        $img = wmata_icon_img($slug, $size, $abbr . ' Line', '',
-            'border-radius:2px;flex-shrink:0');
-        return '<span style="display:inline-flex;align-items:center;gap:3px;'
-             . 'padding:1px 5px 1px 2px;border-radius:4px;'
-             . 'border:2px solid ' . $safe_c . ';background:' . $safe_c . '22;'
-             . 'font-size:.6875rem;font-weight:700;color:' . $safe_c . ';'
-             . 'vertical-align:middle;line-height:1">'
-             . $img
-             . '<span>' . $safe_a . '</span></span>';
+        // Icon present — render bare image only, no pill/border wrapper
+        return wmata_icon_img($slug, $size, $abbr . ' Line', '',
+            'border-radius:2px;flex-shrink:0;vertical-align:middle');
     }
 
-    // Fallback: solid colored pill
+    // Fallback: solid colored pill with abbreviation text
     return '<span style="display:inline-flex;align-items:center;'
          . 'padding:2px 7px;border-radius:4px;'
          . 'background:' . $safe_c . ';color:#fff;'

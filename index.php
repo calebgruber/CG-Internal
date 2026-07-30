@@ -45,7 +45,8 @@ $nav_items = [
     ['section'=>'Apps'],
 ];
 foreach ($apps as $app) {
-    $nav_items[] = ['icon'=>$app['icon'],'label'=>$app['name'],'href'=>$app['url']];
+    $transit = APP_URL . '/id/auth/transit.php?' . http_build_query(['app_name' => $app['name'], 'redirect' => $app['url']]);
+    $nav_items[] = ['icon'=>$app['icon'],'label'=>$app['name'],'href'=>$transit];
 }
 if ($user['role'] === 'admin') {
     $nav_items[] = ['section'=>'Admin'];
@@ -80,7 +81,7 @@ ui_page_header('App Launcher','Welcome back, ' . htmlspecialchars($user['display
   <?php if ($apps): ?>
   <div class="apps-grid">
     <?php foreach ($apps as $app): ?>
-    <a href="<?=htmlspecialchars($app['url'])?>" class="app-tile">
+    <a href="<?= htmlspecialchars(APP_URL . '/id/auth/transit.php?' . http_build_query(['app_name' => $app['name'], 'redirect' => $app['url']])) ?>" class="app-tile">
       <span class="material-symbols-outlined"><?=htmlspecialchars($app['icon'])?></span>
       <span class="app-tile-name"><?=htmlspecialchars($app['name'])?></span>
     </a>

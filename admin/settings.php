@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $keys = [
-        'site_name','login_banner','login_banner_text','login_banner_subtext',
+        'site_name','login_banner','login_banner_overlay_color','login_banner_overlay_opacity',
         'mail_from','mail_from_name',
         'smtp_host','smtp_port','smtp_user','smtp_secure',
         'twilio_sid','twilio_from',
@@ -80,19 +80,22 @@ function sv(string $key, array $settings, string $default = ''): string {
       <input type="text" name="login_banner" class="form-control"
              placeholder="https://…/image.jpg  or  linear-gradient(135deg,#0f172a,#1e40af)"
              value="<?=sv('login_banner',$s)?>">
-      <div class="form-hint">Image URL fills the left panel. CSS gradient/color is used as the background.</div>
+      <div class="form-hint">Image URL fills the left panel with a cover photo. A CSS gradient/color is used as the background.</div>
     </div>
-    <div class="form-group">
-      <label>Login Banner Heading</label>
-      <input type="text" name="login_banner_text" class="form-control"
-             placeholder="<?= htmlspecialchars(APP_NAME) ?>"
-             value="<?=sv('login_banner_text',$s)?>">
-    </div>
-    <div class="form-group">
-      <label>Login Banner Subtext</label>
-      <input type="text" name="login_banner_subtext" class="form-control"
-             placeholder="Internal management platform"
-             value="<?=sv('login_banner_subtext',$s)?>">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Banner Overlay Color</label>
+        <input type="color" name="login_banner_overlay_color" class="form-control"
+               value="<?= $s['login_banner_overlay_color'] !== '' ? htmlspecialchars($s['login_banner_overlay_color']) : '#000000' ?>">
+        <div class="form-hint">Color tint applied over the banner image. Leave opacity at 0 to disable.</div>
+      </div>
+      <div class="form-group">
+        <label>Banner Overlay Opacity <span class="text-muted text-xs">(0 – 1)</span></label>
+        <input type="number" name="login_banner_overlay_opacity" class="form-control"
+               min="0" max="1" step="0.05"
+               value="<?=sv('login_banner_overlay_opacity',$s,'0')?>">
+        <div class="form-hint">0 = no overlay, 1 = fully opaque.</div>
+      </div>
     </div>
     <div class="form-group">
       <label>Notification Email</label>

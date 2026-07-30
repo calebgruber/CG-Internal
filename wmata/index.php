@@ -55,6 +55,7 @@ $nav_items = [
     ['icon' => 'directions_transit','label' => 'Rolling Stock', 'href' => APP_URL . '/wmata/rolling-stock'],
     ['icon' => 'calculate',         'label' => 'Calculator',    'href' => APP_URL . '/wmata/calculator'],
     ['icon' => 'folder',            'label' => 'Files',         'href' => APP_URL . '/wmata/files'],
+    ['icon' => 'extension',         'label' => 'Mods',          'href' => APP_URL . '/wmata/mods'],
 ];
 
 ui_head('WMATA Tracker', 'wmata', 'WMATA Tracker', 'train');
@@ -183,10 +184,11 @@ ui_page_header('Dashboard', 'WMATA Minecraft Recreation Tracker');
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
     <?php
     $links = [
-      ['train','Stations','wmata/stations.php','#003DA5'],
-      ['directions_transit','Rolling Stock','wmata/rolling-stock.php','#BF0D3E'],
-      ['calculate','Calculator','wmata/calculator.php','#10b981'],
-      ['folder','Files','wmata/files.php','#f59e0b'],
+      ['train','Stations','wmata/stations','#003DA5'],
+      ['directions_transit','Rolling Stock','wmata/rolling-stock','#BF0D3E'],
+      ['calculate','Calculator','wmata/calculator','#10b981'],
+      ['folder','Files','wmata/files','#f59e0b'],
+      ['extension','Mods','wmata/mods','#6366f1'],
     ];
     foreach ($links as [$icon,$label,$path,$color]):
     ?>
